@@ -3,27 +3,33 @@ package com.alamkanak.weekview
 import android.os.Parcel
 import android.os.Parcelable
 import android.view.View.BaseSavedState
+import java.util.Calendar
 
 internal class SavedState : BaseSavedState {
 
-    lateinit var viewState: WeekViewViewState
+    var numberOfVisibleDays: Int = 0
+    var firstVisibleDate: Calendar? = null
 
     constructor(superState: Parcelable) : super(superState)
 
     constructor(
         superState: Parcelable,
-        viewState: WeekViewViewState
+        numberOfVisibleDays: Int,
+        firstVisibleDate: Calendar?
     ) : super(superState) {
-        this.viewState = viewState
+        this.numberOfVisibleDays = numberOfVisibleDays
+        this.firstVisibleDate = firstVisibleDate
     }
 
     constructor(source: Parcel) : super(source) {
-        viewState = checkNotNull(source.readParcelable(WeekViewViewState::class.java.classLoader))
+        numberOfVisibleDays = source.readInt()
+        firstVisibleDate = source.readSerializable() as Calendar
     }
 
     override fun writeToParcel(out: Parcel, flags: Int) {
         super.writeToParcel(out, flags)
-        out.writeParcelable(viewState, flags)
+        out.writeInt(numberOfVisibleDays)
+        out.writeSerializable(firstVisibleDate)
     }
 
     companion object {

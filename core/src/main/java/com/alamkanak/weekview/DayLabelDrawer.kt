@@ -31,7 +31,7 @@ internal class DayLabelDrawer<T>(
         startPixel: Float
     ) {
         val key = day.toEpochDays()
-        val dayLabel = cache.dayLabelCache.get(key) { provideAndCacheDayLabel(key, day) }
+        val dayLabel = cache.dateLabels.get(key) { provideAndCacheDayLabel(key, day) }
 
         val x = startPixel + viewState.widthPerDay / 2
 
@@ -46,7 +46,7 @@ internal class DayLabelDrawer<T>(
             drawText(dayLabel, x, y, textPaint)
         } else {
             // Draw the multi-line header
-            val staticLayout = cache.multiLineDayLabelCache.get(key)
+            val staticLayout = cache.multiLineDayLabels.get(key)
             val y = viewState.headerRowPadding.toFloat()
             withTranslation(x, y) {
                 staticLayout.draw(this)
@@ -56,13 +56,13 @@ internal class DayLabelDrawer<T>(
 
     private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {
         return dateTimeInterpreter.interpretDate(day).also {
-            cache.dayLabelCache.put(key, it)
+            cache.dateLabels.put(key, it)
         }
     }
 
     override fun clear(viewState: WeekViewViewState) {
-        cache.dayLabelCache.clear()
-        cache.multiLineDayLabelCache.clear()
+        cache.dateLabels.clear()
+        cache.multiLineDayLabels.clear()
     }
 
     private fun <E> SparseArray<E>.get(key: Int, providerIfEmpty: () -> E): E {

@@ -4,17 +4,14 @@ import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.Typeface
-import android.os.Parcelable
 import android.text.TextPaint
 import com.alamkanak.weekview.Constants.UNINITIALIZED
 import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
 import java.util.Calendar
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
-@Parcelize
 internal data class WeekViewViewState(
     // Calendar configuration
     var firstDayOfWeek: Int = Calendar.MONDAY,
@@ -112,7 +109,7 @@ internal data class WeekViewViewState(
     var maxHour: Int = 0,
 
     // Font
-    var typefaceInfo: TypefaceInfo = TypefaceInfo(),
+    var typeface: Typeface = Typeface.DEFAULT,
 
     // NEW
     var headerHeight: Float = 0f,
@@ -150,7 +147,7 @@ internal data class WeekViewViewState(
     val dateRangeWithStartPixels: MutableList<Pair<Calendar, Float>> = mutableListOf(),
 
     var hasBeenInvalidated: Boolean = false
-) : Parcelable {
+) {
 
     private fun calculateTimeColumnTextWidth(
         dateTimeInterpreter: DateTimeInterpreter
@@ -158,9 +155,6 @@ internal data class WeekViewViewState(
         .map { dateTimeInterpreter.interpretTime(it) }
         .map { timeTextPaint.measureText(it) }
         .max() ?: 0f
-
-    val typeface: Typeface
-        get() = typefaceInfo.toTypeface()
 
     @IgnoredOnParcel
     var timeTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

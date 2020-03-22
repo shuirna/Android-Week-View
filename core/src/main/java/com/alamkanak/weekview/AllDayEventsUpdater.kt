@@ -32,7 +32,7 @@ internal class AllDayEventsUpdater<T : Any>(
     }
 
     override fun update(viewState: WeekViewViewState) {
-        cache.clearAllDayEventLayouts()
+        cache.allDayEventLayouts.clear()
 
         val datesWithStartPixels = viewState.dateRangeWithStartPixels
         for ((date, startPixel) in datesWithStartPixels) {

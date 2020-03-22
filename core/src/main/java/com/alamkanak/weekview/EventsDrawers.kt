@@ -55,6 +55,6 @@ internal class AllDayEventsDrawer<T>(
     }
 
     override fun clear(viewState: WeekViewViewState) {
-        cache.clearAllDayEventLayouts()
+        cache.allDayEventLayouts.clear()
     }
 }

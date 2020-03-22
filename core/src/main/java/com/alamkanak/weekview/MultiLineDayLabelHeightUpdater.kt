@@ -34,7 +34,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
 
         for ((date, multiDayLabel) in multiDayLabels) {
             val key = date.toEpochDays()
-            cache.multiLineDayLabelCache.put(key, multiDayLabel)
+            cache.multiLineDayLabels.put(key, multiDayLabel)
         }
 
         val staticLayout = multiDayLabels
@@ -50,7 +50,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
         date: Calendar
     ): StaticLayout {
         val key = date.toEpochDays()
-        val dayLabel = cache.dayLabelCache.get(key) { provideAndCacheDayLabel(key, date) }
+        val dayLabel = cache.dateLabels.get(key) { provideAndCacheDayLabel(key, date) }
 
         val textPaint = if (date.isToday) {
             viewState.todayHeaderTextPaint
@@ -73,7 +73,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
 
     private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {
         return dateTimeInterpreter.interpretDate(day).also {
-            cache.dayLabelCache.put(key, it)
+            cache.dateLabels.put(key, it)
         }
     }
 

@@ -154,7 +154,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     override fun onSaveInstanceState(): Parcelable? {
         val superState = super.onSaveInstanceState()
         return superState?.let {
-            SavedState(it, viewState)
+            SavedState(it, viewState.numberOfVisibleDays, viewState.firstVisibleDate)
         }
     }
 
@@ -162,16 +162,13 @@ class WeekView<T : Any> @JvmOverloads constructor(
         val savedState = state as SavedState
         super.onRestoreInstanceState(savedState.superState)
 
-        viewState = savedState.viewState
-        invalidate()
+        if (viewState.restoreNumberOfVisibleDays) {
+            viewState.numberOfVisibleDays = savedState.numberOfVisibleDays
+        }
 
-//        if (viewState.restoreNumberOfVisibleDays) {
-//            viewState.numberOfVisibleDays = savedState.viewState.numberOfVisibleDays
-//        }
-
-//        viewState.firstVisibleDate?.let {
-//            goToDate(it)
-//        }
+        savedState.firstVisibleDate?.let {
+            goToDate(it)
+        }
     }
 
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
@@ -1203,13 +1200,12 @@ class WeekView<T : Any> @JvmOverloads constructor(
     /**
      * Returns the typeface used for events, time labels and date labels.
      */
-    val typeface: Typeface
+    var typeface: Typeface
         get() = viewState.typeface
-    // TODO
-//        set(value) {
-//            viewState.typeface = value
-//            invalidate()
-//        }
+        set(value) {
+            viewState.typeface = value
+            invalidate()
+        }
 
     /*
      ***********************************************************************************************

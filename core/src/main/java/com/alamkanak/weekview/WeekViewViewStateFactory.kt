@@ -4,14 +4,13 @@ import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Typeface
-import android.os.Parcelable
 import android.util.AttributeSet
-import kotlinx.android.parcel.Parcelize
 
 private const val SANS = 1
 private const val SERIF = 2
 private const val MONOSPACE = 3
 
+@Suppress("FunctionName")
 internal fun WeekViewViewState(
     context: Context,
     attrs: AttributeSet?
@@ -20,7 +19,7 @@ internal fun WeekViewViewState(
     return WeekViewViewState(
         // Calendar configuration
         firstDayOfWeek = a.getInt(R.styleable.WeekView_firstDayOfWeek, defaultValue = { now().firstDayOfWeek }),
-        numberOfVisibleDays = a.getInteger(R.styleable.WeekView_numberOfVisibleDays, 3),
+        numberOfVisibleDays = a.getInt(R.styleable.WeekView_numberOfVisibleDays, 3),
         restoreNumberOfVisibleDays = a.getBoolean(R.styleable.WeekView_restoreNumberOfVisibleDays, true),
         showFirstDayOfWeekFirst = a.getBoolean(R.styleable.WeekView_showFirstDayOfWeekFirst, false),
         showCurrentTimeFirst = a.getBoolean(R.styleable.WeekView_showCurrentTimeFirst, false),
@@ -35,7 +34,7 @@ internal fun WeekViewViewState(
         timeColumnTextSize = a.getDimensionPixelSize(R.styleable.WeekView_timeColumnTextSize, Defaults.textSize(context)),
         showMidnightHour = a.getBoolean(R.styleable.WeekView_showMidnightHour, false),
         showTimeColumnHourSeparator = a.getBoolean(R.styleable.WeekView_showTimeColumnHourSeparator, false),
-        timeColumnHoursInterval = a.getInteger(R.styleable.WeekView_timeColumnHoursInterval, 1),
+        timeColumnHoursInterval = a.getInt(R.styleable.WeekView_timeColumnHoursInterval, 1),
 
         // Time column separator
         showTimeColumnSeparator = a.getBoolean(R.styleable.WeekView_showTimeColumnSeparator, false),
@@ -110,10 +109,10 @@ internal fun WeekViewViewState(
         verticalScrollingEnabled = a.getBoolean(R.styleable.WeekView_verticalScrollingEnabled, true),
 
         // Typeface
-        typefaceInfo = TypefaceInfo(
+        typeface = Typeface(
             fontFamily = a.getString(R.styleable.WeekView_fontFamily),
-            typefaceIndex = a.getInteger(R.styleable.WeekView_typeface, 0),
-            textStyle = a.getInteger(R.styleable.WeekView_textStyle, 0)
+            typefaceIndex = a.getInt(R.styleable.WeekView_typeface, 0),
+            textStyle = a.getInt(R.styleable.WeekView_textStyle, 0)
         )
     ).apply {
         effectiveMinHourHeight = minHourHeight
@@ -123,22 +122,18 @@ internal fun WeekViewViewState(
     }
 }
 
-@Parcelize
-internal data class TypefaceInfo(
-    val fontFamily: String? = null,
-    val typefaceIndex: Int = 0,
-    val textStyle: Int = 0
-) : Parcelable {
-    fun toTypeface(): Typeface {
-        return fontFamily?.let {
-            Typeface.create(it, textStyle)
-        } ?: when (typefaceIndex) {
-            SANS -> Typeface.SANS_SERIF
-            SERIF -> Typeface.SERIF
-            MONOSPACE -> Typeface.MONOSPACE
-            else -> Typeface.DEFAULT
-        }
-    }
+@Suppress("FunctionName")
+private fun Typeface(
+    fontFamily: String? = null,
+    typefaceIndex: Int = 0,
+    textStyle: Int = 0
+): Typeface = fontFamily?.let {
+    Typeface.create(it, textStyle)
+} ?: when (typefaceIndex) {
+    SANS -> Typeface.SANS_SERIF
+    SERIF -> Typeface.SERIF
+    MONOSPACE -> Typeface.MONOSPACE
+    else -> Typeface.DEFAULT
 }
 
 private fun TypedArray.getInt(index: Int, defaultValue: () -> Int): Int {

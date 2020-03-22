@@ -9,13 +9,13 @@ import org.mockito.MockitoAnnotations
 
 class WeekViewEventTest {
 
-    private val config = Mockito.mock(WeekViewConfigWrapper::class.java)
-    private val eventSplitter = WeekViewEventSplitter<Event>(config)
+    private val viewState = Mockito.mock(WeekViewViewState::class.java)
+    private val eventSplitter = WeekViewEventSplitter<Event>(viewState)
 
     init {
         MockitoAnnotations.initMocks(this)
-        Mockito.`when`(config.minHour).thenReturn(0)
-        Mockito.`when`(config.maxHour).thenReturn(24)
+        Mockito.`when`(viewState.minHour).thenReturn(0)
+        Mockito.`when`(viewState.maxHour).thenReturn(24)
     }
 
     @Test
