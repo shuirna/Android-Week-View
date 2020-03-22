@@ -1,13 +1,10 @@
 package com.alamkanak.weekview
 
 import android.content.Context
-import android.graphics.Paint
-import android.text.TextPaint
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DimenRes
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -35,29 +32,6 @@ data class WeekViewEvent<T> internal constructor(
         minHour: Int,
         maxHour: Int
     ): Boolean = startTime.hour >= minHour && endTime.hour <= maxHour
-
-    internal fun getTextPaint(
-        context: Context,
-        config: WeekViewConfigWrapper
-    ): TextPaint {
-        val textPaint = if (isAllDay) {
-            config.allDayEventTextPaint
-        } else {
-            config.eventTextPaint
-        }
-
-        textPaint.color = when (val resource = style.textColorResource) {
-            is ColorResource.Id -> ContextCompat.getColor(context, resource.resId)
-            is ColorResource.Value -> resource.color
-            null -> config.eventTextPaint.color
-        }
-
-        if (style.isTextStrikeThrough) {
-            textPaint.flags = textPaint.flags or Paint.STRIKE_THRU_TEXT_FLAG
-        }
-
-        return textPaint
-    }
 
     internal fun collidesWith(other: WeekViewEvent<T>): Boolean {
         if (isAllDay != other.isAllDay) {
@@ -128,18 +102,6 @@ data class WeekViewEvent<T> internal constructor(
 
         internal val hasBorder: Boolean
             get() = borderWidthResource != null
-
-        internal fun getBackgroundColorOrDefault(config: WeekViewConfigWrapper): ColorResource {
-            return backgroundColorResource ?: ColorResource.Value(config.defaultEventColor)
-        }
-
-        internal fun getBorderWidth(
-            context: Context
-        ): Int = when (val resource = borderWidthResource) {
-            is DimenResource.Id -> context.resources.getDimensionPixelSize(resource.resId)
-            is DimenResource.Value -> resource.value
-            null -> throw IllegalStateException("Invalid border width resource: $resource")
-        }
 
         class Builder {
 

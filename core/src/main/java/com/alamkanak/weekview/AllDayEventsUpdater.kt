@@ -1,5 +1,6 @@
 package com.alamkanak.weekview
 
+import android.content.Context
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
@@ -12,40 +13,38 @@ import com.alamkanak.weekview.WeekViewEvent.TextResource
 import kotlin.math.roundToInt
 
 internal class AllDayEventsUpdater<T : Any>(
-    private val view: WeekView<T>,
-    private val config: WeekViewConfigWrapper,
+    private val context: Context,
     private val cache: WeekViewCache<T>,
     private val chipCache: EventChipCache<T>,
     private val emojiTextProcessor: EmojiTextProcessor = EmojiTextProcessor()
 ) : Updater {
 
-    private val context = view.context
-    private val rectCalculator = EventChipRectCalculator<T>(config)
+    private val rectCalculator = EventChipRectCalculator<T>()
 
     private var previousHorizontalOrigin: Float? = null
     private var dummyTextLayout: StaticLayout? = null
 
-    override fun isRequired(drawingContext: DrawingContext): Boolean {
-        val didScrollHorizontally = previousHorizontalOrigin != config.currentOrigin.x
-        val dateRange = drawingContext.dateRange
+    override fun isRequired(viewState: WeekViewViewState): Boolean {
+        val didScrollHorizontally = previousHorizontalOrigin != viewState.currentOrigin.x
+        val dateRange = viewState.dateRange
         val containsNewChips = chipCache.allDayEventChipsInDateRange(dateRange).any { it.bounds == null }
         return didScrollHorizontally || containsNewChips
     }
 
-    override fun update(drawingContext: DrawingContext) {
+    override fun update(viewState: WeekViewViewState) {
         cache.clearAllDayEventLayouts()
 
-        val datesWithStartPixels = drawingContext.dateRangeWithStartPixels
+        val datesWithStartPixels = viewState.dateRangeWithStartPixels
         for ((date, startPixel) in datesWithStartPixels) {
             // If we use a horizontal margin in the day view, we need to offset the start pixel.
             val modifiedStartPixel = when {
-                config.isSingleDay -> startPixel + config.eventMarginHorizontal.toFloat()
+                viewState.isSingleDay -> startPixel + viewState.eventMarginHorizontal.toFloat()
                 else -> startPixel
             }
 
             val eventChips = chipCache.allDayEventChipsByDate(date)
             for (eventChip in eventChips) {
-                calculateTextLayout(eventChip, modifiedStartPixel)
+                calculateTextLayout(viewState, eventChip, modifiedStartPixel)
             }
         }
 
@@ -54,18 +53,20 @@ internal class AllDayEventsUpdater<T : Any>(
             .map { it.height().roundToInt() }
             .max() ?: 0
 
-        config.updateAllDayEventHeight(maximumChipHeight)
+        viewState.updateAllDayEventHeight(maximumChipHeight)
     }
 
     private fun calculateTextLayout(
+        viewState: WeekViewViewState,
         eventChip: EventChip<T>,
         startPixel: Float
     ) {
-        val chipRect = rectCalculator.calculateAllDayEvent(eventChip, startPixel)
-        eventChip.bounds = if (chipRect.isValidEventBounds) chipRect else null
+        val chipRect = rectCalculator.calculateAllDayEvent(viewState, eventChip, startPixel)
+        val isValidEventBounds = chipRect.isValidEventBounds(viewState)
+        eventChip.bounds = if (isValidEventBounds) chipRect else null
 
-        if (chipRect.isValidEventBounds) {
-            val textLayout = calculateChipTextLayout(eventChip)
+        if (isValidEventBounds) {
+            val textLayout = calculateChipTextLayout(viewState, eventChip)
             textLayout?.let { layout ->
                 cache.allDayEventLayouts[eventChip] = layout
             }
@@ -73,13 +74,14 @@ internal class AllDayEventsUpdater<T : Any>(
     }
 
     private fun calculateChipTextLayout(
+        viewState: WeekViewViewState,
         eventChip: EventChip<T>
     ): StaticLayout? {
         val event = eventChip.event
         val bounds = checkNotNull(eventChip.bounds)
 
-        val fullHorizontalPadding = config.eventPaddingHorizontal * 2
-        val fullVerticalPadding = config.eventPaddingVertical * 2
+        val fullHorizontalPadding = viewState.eventPaddingHorizontal * 2
+        val fullVerticalPadding = viewState.eventPaddingVertical * 2
 
         val width = bounds.width() - fullHorizontalPadding
         val height = bounds.height() - fullVerticalPadding
@@ -90,7 +92,7 @@ internal class AllDayEventsUpdater<T : Any>(
 
         if (width < 0) {
             // This happens if there are many all-day events
-            val dummyTextLayout = createDummyTextLayout(event)
+            val dummyTextLayout = createDummyTextLayout(viewState, event)
             val chipHeight = dummyTextLayout.height + fullVerticalPadding
             bounds.bottom = bounds.top + chipHeight
             return dummyTextLayout
@@ -119,7 +121,7 @@ internal class AllDayEventsUpdater<T : Any>(
 
         val availableWidth = width.toInt()
 
-        val textPaint = event.getTextPaint(context, config)
+        val textPaint = event.getTextPaint(context, viewState)
         val textLayout = TextLayoutBuilder.build(text, textPaint, availableWidth)
         val lineHeight = textLayout.height / textLayout.lineCount
 
@@ -127,30 +129,37 @@ internal class AllDayEventsUpdater<T : Any>(
         val chipHeight = lineHeight + fullVerticalPadding
         bounds.bottom = bounds.top + chipHeight
 
-        return eventChip.ellipsizeText(text, availableWidth, existingTextLayout = textLayout)
+        return eventChip.ellipsizeText(
+            viewState = viewState,
+            text = text,
+            availableWidth = availableWidth,
+            existingTextLayout = textLayout
+        )
     }
 
     /**
      * Creates a dummy text layout that is only used to determine the height of all-day events.
      */
     private fun createDummyTextLayout(
+        viewState: WeekViewViewState,
         event: WeekViewEvent<T>
     ): StaticLayout {
         if (dummyTextLayout == null) {
-            val textPaint = event.getTextPaint(context, config)
+            val textPaint = event.getTextPaint(context, viewState)
             dummyTextLayout = TextLayoutBuilder.build("", textPaint, width = 0)
         }
         return checkNotNull(dummyTextLayout)
     }
 
     private fun EventChip<T>.ellipsizeText(
+        viewState: WeekViewViewState,
         text: CharSequence,
         availableWidth: Int,
         existingTextLayout: StaticLayout
     ): StaticLayout {
-        val textPaint = event.getTextPaint(context, config)
+        val textPaint = event.getTextPaint(context, viewState)
         val bounds = checkNotNull(bounds)
-        val width = bounds.width().roundToInt() - (config.eventPaddingHorizontal * 2)
+        val width = bounds.width().roundToInt() - (viewState.eventPaddingHorizontal * 2)
 
         val ellipsized = text.ellipsized(textPaint, availableWidth)
         val isTooSmallForText = width < 0
@@ -163,12 +172,15 @@ internal class AllDayEventsUpdater<T : Any>(
         return TextLayoutBuilder.build(ellipsized, textPaint, width)
     }
 
-    private val RectF.isValidEventBounds: Boolean
-        get() = (left < right &&
-            left < view.width &&
-            top < view.height &&
-            right > config.timeColumnWidth &&
-            bottom > 0)
+    private fun RectF.isValidEventBounds(
+        viewState: WeekViewViewState
+    ): Boolean {
+        return left < right &&
+            left < viewState.width &&
+            top < viewState.height &&
+            right > viewState.timeColumnWidth &&
+            bottom > 0
+    }
 
     private operator fun RectF.component1() = left
 

@@ -5,31 +5,31 @@ import android.text.TextPaint
 import android.util.SparseArray
 import java.util.Calendar
 
-internal class MultiLineDayLabelHeightUpdater<T>(
-    private val config: WeekViewConfigWrapper,
-    private val cache: WeekViewCache<T>
+internal class MultiLineDayLabelHeightUpdater<T : Any>(
+    private val cache: WeekViewCache<T>,
+    private val dateTimeInterpreter: DateTimeInterpreter
 ) : Updater {
 
     private var previousHorizontalOrigin: Float? = null
 
-    override fun isRequired(drawingContext: DrawingContext): Boolean {
-        if (config.singleLineHeader) {
+    override fun isRequired(viewState: WeekViewViewState): Boolean {
+        if (viewState.singleLineHeader) {
             return false
         }
 
-        val currentTimeColumnWidth = config.timeTextWidth + config.timeColumnPadding * 2
-        val didTimeColumnChange = currentTimeColumnWidth != config.timeColumnWidth
-        val didScrollHorizontally = previousHorizontalOrigin != config.currentOrigin.x
-        val isCacheIncomplete = config.numberOfVisibleDays != cache.allDayEventLayouts.size
+        val currentTimeColumnWidth = viewState.timeTextWidth + viewState.timeColumnPadding * 2
+        val didTimeColumnChange = currentTimeColumnWidth != viewState.timeColumnWidth
+        val didScrollHorizontally = previousHorizontalOrigin != viewState.currentOrigin.x
+        val isCacheIncomplete = viewState.numberOfVisibleDays != cache.allDayEventLayouts.size
 
         return didTimeColumnChange || didScrollHorizontally || isCacheIncomplete
     }
 
-    override fun update(drawingContext: DrawingContext) {
-        previousHorizontalOrigin = config.currentOrigin.x
+    override fun update(viewState: WeekViewViewState) {
+        previousHorizontalOrigin = viewState.currentOrigin.x
 
-        val multiDayLabels = drawingContext.dateRange.map {
-            it to calculateStaticLayoutForDate(it)
+        val multiDayLabels = viewState.dateRange.map {
+            it to calculateStaticLayoutForDate(viewState, it)
         }
 
         for ((date, multiDayLabel) in multiDayLabels) {
@@ -41,30 +41,38 @@ internal class MultiLineDayLabelHeightUpdater<T>(
             .map { it.second }
             .maxBy { it.height }
 
-        config.headerTextHeight = staticLayout?.height?.toFloat() ?: 0f
-        config.refreshHeaderHeight()
+        viewState.headerTextHeight = staticLayout?.height?.toFloat() ?: 0f
+        viewState.refreshHeaderHeight()
     }
 
-    private fun calculateStaticLayoutForDate(date: Calendar): StaticLayout {
+    private fun calculateStaticLayoutForDate(
+        viewState: WeekViewViewState,
+        date: Calendar
+    ): StaticLayout {
         val key = date.toEpochDays()
         val dayLabel = cache.dayLabelCache.get(key) { provideAndCacheDayLabel(key, date) }
 
         val textPaint = if (date.isToday) {
-            config.todayHeaderTextPaint
+            viewState.todayHeaderTextPaint
         } else {
-            config.headerTextPaint
+            viewState.headerTextPaint
         }
 
-        return buildStaticLayout(dayLabel, TextPaint(textPaint))
+        return buildStaticLayout(viewState, dayLabel, TextPaint(textPaint))
     }
 
-    private fun buildStaticLayout(dayLabel: String, textPaint: TextPaint): StaticLayout {
-        val width = config.totalDayWidth.toInt()
+    private fun buildStaticLayout(
+        viewState: WeekViewViewState,
+        dayLabel: String,
+        textPaint:
+        TextPaint
+    ): StaticLayout {
+        val width = viewState.totalDayWidth.toInt()
         return TextLayoutBuilder.build(dayLabel, textPaint, width)
     }
 
     private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {
-        return config.dateTimeInterpreter.interpretDate(day).also {
+        return dateTimeInterpreter.interpretDate(day).also {
             cache.dayLabelCache.put(key, it)
         }
     }

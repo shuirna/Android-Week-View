@@ -10,15 +10,16 @@ import android.text.StaticLayout
 import android.text.style.StyleSpan
 import androidx.core.content.ContextCompat
 import com.alamkanak.weekview.WeekViewEvent.ColorResource
+import com.alamkanak.weekview.WeekViewEvent.DimenResource
 import com.alamkanak.weekview.WeekViewEvent.TextResource
 
 internal class EventChipDrawer<T>(
     private val context: Context,
-    private val config: WeekViewConfigWrapper,
+    private val viewState: WeekViewViewState,
     private val emojiTextProcessor: EmojiTextProcessor = EmojiTextProcessor()
 ) {
 
-    private val textFitter = TextFitter<T>(context, config)
+    private val textFitter = TextFitter<T>(context, viewState)
     private val textLayoutCache = mutableMapOf<Long, StaticLayout>()
 
     private val backgroundPaint = Paint()
@@ -31,7 +32,7 @@ internal class EventChipDrawer<T>(
     ) {
         val event = eventChip.event
 
-        val cornerRadius = config.eventCornerRadius.toFloat()
+        val cornerRadius = viewState.eventCornerRadius.toFloat()
         updateBackgroundPaint(event, backgroundPaint)
 
         val rect = checkNotNull(eventChip.bounds)
@@ -129,8 +130,8 @@ internal class EventChipDrawer<T>(
         canvas.apply {
             save()
             translate(
-                rect.left + config.eventPaddingHorizontal,
-                rect.top + config.eventPaddingVertical
+                rect.left + viewState.eventPaddingHorizontal,
+                rect.top + viewState.eventPaddingVertical
             )
             textLayout.draw(this)
             restore()
@@ -144,8 +145,8 @@ internal class EventChipDrawer<T>(
         val event = eventChip.event
         val rect = checkNotNull(eventChip.bounds)
 
-        val fullHorizontalPadding = config.eventPaddingHorizontal * 2
-        val fullVerticalPadding = config.eventPaddingVertical * 2
+        val fullHorizontalPadding = viewState.eventPaddingHorizontal * 2
+        val fullVerticalPadding = viewState.eventPaddingVertical * 2
 
         val negativeWidth = rect.right - rect.left - fullHorizontalPadding < 0
         val negativeHeight = rect.bottom - rect.top - fullVerticalPadding < 0
@@ -206,7 +207,7 @@ internal class EventChipDrawer<T>(
         event: WeekViewEvent<T>,
         paint: Paint
     ) {
-        val resource = event.style.getBackgroundColorOrDefault(config)
+        val resource = event.style.getBackgroundColorOrDefault(viewState.defaultEventColor)
         paint.color = when (resource) {
             is ColorResource.Id -> ContextCompat.getColor(context, resource.resId)
             is ColorResource.Value -> resource.color
@@ -229,4 +230,18 @@ internal class EventChipDrawer<T>(
         paint.strokeWidth = event.style.getBorderWidth(context).toFloat()
         paint.style = Paint.Style.STROKE
     }
+}
+
+private fun WeekViewEvent.Style.getBackgroundColorOrDefault(
+    defaultColor: Int
+): ColorResource {
+    return backgroundColorResource ?: ColorResource.Value(defaultColor)
+}
+
+private fun WeekViewEvent.Style.getBorderWidth(
+    context: Context
+): Int = when (val resource = borderWidthResource) {
+    is DimenResource.Id -> context.resources.getDimensionPixelSize(resource.resId)
+    is DimenResource.Value -> resource.value
+    null -> throw IllegalStateException("Invalid border width resource: $resource")
 }

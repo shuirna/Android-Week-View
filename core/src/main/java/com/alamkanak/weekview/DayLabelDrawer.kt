@@ -5,58 +5,62 @@ import android.util.SparseArray
 import java.util.Calendar
 
 internal class DayLabelDrawer<T>(
-    private val config: WeekViewConfigWrapper,
-    private val cache: WeekViewCache<T>
+    private val cache: WeekViewCache<T>,
+    private val dateTimeInterpreter: DateTimeInterpreter
 ) : CachingDrawer {
 
     override fun draw(
-        drawingContext: DrawingContext,
+        viewState: WeekViewViewState,
         canvas: Canvas
     ) {
-        val left = config.timeColumnWidth
+        val left = viewState.timeColumnWidth
         val top = 0f
         val right = canvas.width.toFloat()
-        val bottom = config.getTotalHeaderHeight()
+        val bottom = viewState.getTotalHeaderHeight()
 
         canvas.drawInRect(left, top, right, bottom) {
-            drawingContext.dateRangeWithStartPixels.forEach { (date, startPixel) ->
-                drawLabel(date, startPixel, this)
+            viewState.dateRangeWithStartPixels.forEach { (date, startPixel) ->
+                drawLabel(viewState, date, startPixel)
             }
         }
     }
 
-    private fun drawLabel(day: Calendar, startPixel: Float, canvas: Canvas) {
+    private fun Canvas.drawLabel(
+        viewState: WeekViewViewState,
+        day: Calendar,
+        startPixel: Float
+    ) {
         val key = day.toEpochDays()
         val dayLabel = cache.dayLabelCache.get(key) { provideAndCacheDayLabel(key, day) }
 
-        val x = startPixel + config.widthPerDay / 2
+        val x = startPixel + viewState.widthPerDay / 2
 
         val textPaint = if (day.isToday) {
-            config.todayHeaderTextPaint
+            viewState.todayHeaderTextPaint
         } else {
-            config.headerTextPaint
+            viewState.headerTextPaint
         }
 
-        if (config.singleLineHeader) {
-            val y = config.headerRowPadding.toFloat() - textPaint.ascent()
-            canvas.drawText(dayLabel, x, y, textPaint)
+        if (viewState.singleLineHeader) {
+            val y = viewState.headerRowPadding.toFloat() - textPaint.ascent()
+            drawText(dayLabel, x, y, textPaint)
         } else {
             // Draw the multi-line header
             val staticLayout = cache.multiLineDayLabelCache.get(key)
-            val y = config.headerRowPadding.toFloat()
-            canvas.withTranslation(x, y) {
+            val y = viewState.headerRowPadding.toFloat()
+            withTranslation(x, y) {
                 staticLayout.draw(this)
             }
         }
     }
 
     private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {
-        return config.dateTimeInterpreter.interpretDate(day).also {
+        return dateTimeInterpreter.interpretDate(day).also {
             cache.dayLabelCache.put(key, it)
         }
     }
 
-    override fun clear() {
+    override fun clear(viewState: WeekViewViewState) {
         cache.dayLabelCache.clear()
         cache.multiLineDayLabelCache.clear()
     }

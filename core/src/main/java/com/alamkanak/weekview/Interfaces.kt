@@ -3,14 +3,14 @@ package com.alamkanak.weekview
 import android.graphics.Canvas
 
 internal interface Updater {
-    fun isRequired(drawingContext: DrawingContext): Boolean
-    fun update(drawingContext: DrawingContext)
+    fun isRequired(viewState: WeekViewViewState): Boolean
+    fun update(viewState: WeekViewViewState)
 }
 
 internal interface Drawer {
-    fun draw(drawingContext: DrawingContext, canvas: Canvas)
+    fun draw(viewState: WeekViewViewState, canvas: Canvas)
 }
 
 internal interface CachingDrawer : Drawer {
-    fun clear()
+    fun clear(viewState: WeekViewViewState)
 }

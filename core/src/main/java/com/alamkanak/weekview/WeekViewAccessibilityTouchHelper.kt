@@ -1,8 +1,10 @@
 package com.alamkanak.weekview
 
+import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat
 import androidx.customview.widget.ExploreByTouchHelper
@@ -12,12 +14,18 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import kotlin.math.roundToInt
 
+internal val Context.isAccessibilityEnabled: Boolean
+    get() {
+        val manager = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        return manager.isEnabled && manager.isTouchExplorationEnabled
+    }
+
 internal class WeekViewAccessibilityTouchHelper<T : Any>(
-    private val view: WeekView<T>,
-    private val config: WeekViewConfigWrapper,
-    private val drawingContext: DrawingContext,
+    view: WeekView<T>,
+    private val viewState: WeekViewViewState,
     private val gestureHandler: WeekViewGestureHandler<T>,
-    private val eventChipCache: EventChipCache<T>
+    private val eventChipCache: EventChipCache<T>,
+    private val touchHandler: WeekViewTouchHandler<T>
 ) : ExploreByTouchHelper(view) {
 
     private val context = view.context
@@ -25,7 +33,6 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
     private val dateFormatter = SimpleDateFormat.getDateInstance(LONG)
     private val dateTimeFormatter = SimpleDateFormat.getDateTimeInstance(LONG, SHORT)
 
-    private val touchHandler = WeekViewTouchHandler(config)
     private val store = VirtualViewIdStore<T>()
 
     override fun getVirtualViewAt(x: Float, y: Float): Int {
@@ -48,7 +55,7 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
     }
 
     override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>) {
-        val dateRange = drawingContext.dateRange
+        val dateRange = viewState.dateRange
         val visibleEventChips = eventChipCache.allEventChipsInDateRange(dateRange)
         virtualViewIds += store.put(visibleEventChips)
         virtualViewIds += dateRange.map { store.put(it) }
@@ -79,12 +86,12 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
 
         return when (action) {
             AccessibilityNodeInfoCompat.ACTION_CLICK -> {
-                gestureHandler.onEventClickListener?.onEventClick(data, rect)
+                touchHandler.onEventClickListener?.onEventClick(data, rect)
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
                 true
             }
             AccessibilityNodeInfoCompat.ACTION_LONG_CLICK -> {
-                gestureHandler.onEventLongClickListener?.onEventLongClick(data, rect)
+                touchHandler.onEventLongClickListener?.onEventLongClick(data, rect)
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
                 true
             }
@@ -99,12 +106,12 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
     ): Boolean {
         return when (action) {
             AccessibilityNodeInfoCompat.ACTION_CLICK -> {
-                gestureHandler.onEmptyViewClickListener?.onEmptyViewClicked(date)
+                touchHandler.onEmptyViewClickListener?.onEmptyViewClicked(date)
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
                 true
             }
             AccessibilityNodeInfoCompat.ACTION_LONG_CLICK -> {
-                gestureHandler.onEmptyViewLongClickListener?.onEmptyViewLongClick(date)
+                touchHandler.onEmptyViewLongClickListener?.onEmptyViewLongClick(date)
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
                 true
             }
@@ -154,13 +161,13 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
         node.addAction(AccessibilityActionCompat.ACTION_CLICK)
         node.addAction(AccessibilityActionCompat.ACTION_LONG_CLICK)
 
-        val dateWithStartPixel = drawingContext.dateRangeWithStartPixels
+        val dateWithStartPixel = viewState.dateRangeWithStartPixels
             .firstOrNull { it.first == date } ?: return
 
         val left = dateWithStartPixel.second.roundToInt()
-        val right = left + config.totalDayWidth.roundToInt()
-        val top = config.headerHeight.roundToInt()
-        val bottom = view.height
+        val right = left + viewState.totalDayWidth.roundToInt()
+        val top = viewState.headerHeight.roundToInt()
+        val bottom = viewState.height
 
         val bounds = Rect(left, top, right, bottom)
         node.setBoundsInParent(bounds)

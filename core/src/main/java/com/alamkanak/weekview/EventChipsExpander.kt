@@ -1,7 +1,7 @@
 package com.alamkanak.weekview
 
 internal class EventChipsExpander<T>(
-    private val config: WeekViewConfigWrapper,
+    private val viewState: WeekViewViewState,
     private val chipCache: EventChipCache<T>
 ) {
 
@@ -96,7 +96,7 @@ internal class EventChipsExpander<T>(
             return
         }
 
-        val hoursFromStart = event.startTime.hour - config.minHour
+        val hoursFromStart = event.startTime.hour - viewState.minHour
         eventChip.minutesFromStartHour = hoursFromStart * 60 + event.startTime.minute
     }
 

@@ -4,28 +4,28 @@ import android.graphics.Canvas
 import android.util.SparseArray
 
 internal class TimeColumnDrawer(
-    private val view: WeekView<*>,
-    private val config: WeekViewConfigWrapper
+    viewState: WeekViewViewState,
+    private val dateTimeInterpreter: DateTimeInterpreter
 ) : CachingDrawer {
 
     private val timeLabelCache = SparseArray<String>()
 
     init {
-        cacheTimeLabels()
+        cacheTimeLabels(viewState)
     }
 
-    private fun cacheTimeLabels() = with(config) {
+    private fun cacheTimeLabels(viewState: WeekViewViewState) = with(viewState) {
         for (hour in startHour until hoursPerDay step timeColumnHoursInterval) {
             timeLabelCache.put(hour, dateTimeInterpreter.interpretTime(hour + minHour))
         }
     }
 
     override fun draw(
-        drawingContext: DrawingContext,
+        viewState: WeekViewViewState,
         canvas: Canvas
-    ) = with(config) {
+    ) = with(viewState) {
         var topMargin = headerHeight
-        val bottom = view.height.toFloat()
+        val bottom = viewState.height.toFloat()
 
         canvas.drawRect(0f, topMargin, timeColumnWidth, bottom, timeColumnBackgroundPaint)
 
@@ -72,8 +72,8 @@ internal class TimeColumnDrawer(
         }
     }
 
-    override fun clear() {
+    override fun clear(viewState: WeekViewViewState) {
         timeLabelCache.clear()
-        cacheTimeLabels()
+        cacheTimeLabels(viewState)
     }
 }

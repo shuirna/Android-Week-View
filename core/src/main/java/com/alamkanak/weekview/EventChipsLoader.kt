@@ -1,11 +1,11 @@
 package com.alamkanak.weekview
 
 internal class EventChipsLoader<T>(
-    config: WeekViewConfigWrapper,
+    viewState: WeekViewViewState,
     private val chipCache: EventChipCache<T>
 ) {
 
-    private val eventSplitter = WeekViewEventSplitter<T>(config)
+    private val eventSplitter = WeekViewEventSplitter<T>(viewState)
 
     fun createAndCacheEventChips(events: List<WeekViewEvent<T>>) {
         chipCache += convertEventsToEventChips(events)

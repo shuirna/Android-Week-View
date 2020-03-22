@@ -4,51 +4,46 @@ import android.graphics.RectF
 import java.util.Calendar
 
 internal class SingleEventsUpdater<T : Any>(
-    private val view: WeekView<T>,
-    private val config: WeekViewConfigWrapper,
     private val chipCache: EventChipCache<T>
 ) : Updater {
 
-    private val rectCalculator = EventChipRectCalculator<T>(config)
+    private val rectCalculator = EventChipRectCalculator<T>()
 
-    override fun isRequired(drawingContext: DrawingContext) = true
+    override fun isRequired(viewState: WeekViewViewState) = true
 
-    override fun update(drawingContext: DrawingContext) {
+    override fun update(viewState: WeekViewViewState) {
         chipCache.clearSingleEventsCache()
 
-        drawingContext
+        viewState
             .dateRangeWithStartPixels
             .forEach { (date, startPixel) ->
                 // If we use a horizontal margin in the day view, we need to offset the start pixel.
                 val modifiedStartPixel = when {
-                    config.isSingleDay -> startPixel + config.eventMarginHorizontal.toFloat()
+                    viewState.isSingleDay -> startPixel + viewState.eventMarginHorizontal.toFloat()
                     else -> startPixel
                 }
-                calculateRectsForEventsOnDate(date, modifiedStartPixel)
+                calculateRectsForEventsOnDate(viewState, date, modifiedStartPixel)
             }
     }
 
     private fun calculateRectsForEventsOnDate(
+        viewState: WeekViewViewState,
         date: Calendar,
         startPixel: Float
     ) {
         chipCache.normalEventChipsByDate(date)
-            .filter { it.event.isNotAllDay && it.event.isWithin(config.minHour, config.maxHour) }
-            .forEach {
-                val chipRect = rectCalculator.calculateSingleEvent(it, startPixel)
-                if (chipRect.isValidSingleEventRect) {
-                    it.bounds = chipRect
-                } else {
-                    it.bounds = null
-                }
+            .filter { it.event.isNotAllDay && it.event.isWithin(viewState.minHour, viewState.maxHour) }
+            .forEach { eventChip ->
+                eventChip.bounds = rectCalculator
+                    .calculateSingleEvent(viewState, eventChip, startPixel)
+                    .takeIf { bounds -> bounds.isValidSingleEventRect(viewState) }
             }
     }
 
-    private val RectF.isValidSingleEventRect: Boolean
-        get() {
-            val hasCorrectWidth = left < right && left < view.width
-            val hasCorrectHeight = top < view.height
-            val isNotHiddenByChrome = right > config.timeColumnWidth && bottom > config.headerHeight
-            return hasCorrectWidth && hasCorrectHeight && isNotHiddenByChrome
-        }
+    private fun RectF.isValidSingleEventRect(viewState: WeekViewViewState): Boolean {
+        val hasCorrectWidth = left < right && left < viewState.width
+        val hasCorrectHeight = top < viewState.height
+        val isNotHiddenByChrome = right > viewState.timeColumnWidth && bottom > viewState.headerHeight
+        return hasCorrectWidth && hasCorrectHeight && isNotHiddenByChrome
+    }
 }

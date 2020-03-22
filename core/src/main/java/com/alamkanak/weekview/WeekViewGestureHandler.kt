@@ -1,10 +1,10 @@
 package com.alamkanak.weekview
 
+import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_UP
 import android.view.ScaleGestureDetector
-import android.view.View
 import android.view.ViewConfiguration
 import android.widget.OverScroller
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
@@ -24,39 +24,29 @@ private enum class Direction {
     val isHorizontal: Boolean
         get() = this == LEFT || this == RIGHT
 
-    val isLeft: Boolean
-        get() = this == LEFT
-
-    val isRight: Boolean
-        get() = this == RIGHT
-
     val isVertical: Boolean
         get() = this == VERTICAL
-
-    val isNotNone: Boolean
-        get() = this != NONE
 }
 
 internal class WeekViewGestureHandler<T : Any>(
-    private val view: WeekView<*>,
-    private val config: WeekViewConfigWrapper,
+    context: Context,
+    private val viewState: WeekViewViewState,
     private val chipCache: EventChipCache<T>,
-    private val listener: Listener
+    private val touchHandler: WeekViewTouchHandler<T>,
+    private val onInvalidation: () -> Unit
 ) : GestureDetector.SimpleOnGestureListener() {
 
-    private val touchHandler = WeekViewTouchHandler(config)
-
-    private val scroller = OverScroller(view.context, FastOutLinearInInterpolator())
+    private val scroller = OverScroller(context, FastOutLinearInInterpolator())
     private var currentScrollDirection = NONE
     private var currentFlingDirection = NONE
 
-    private val gestureDetector = GestureDetector(view.context, this)
+    private val gestureDetector = GestureDetector(context, this)
 
-    private val scaleDetector = ScaleGestureDetector(view.context,
+    private val scaleDetector = ScaleGestureDetector(context,
         object : ScaleGestureDetector.OnScaleGestureListener {
             override fun onScaleEnd(detector: ScaleGestureDetector) {
                 isZooming = false
-                listener.requireInvalidation()
+                onInvalidation()
             }
 
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
@@ -66,23 +56,17 @@ internal class WeekViewGestureHandler<T : Any>(
             }
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
-                val hourHeight = config.hourHeight
-                config.newHourHeight = hourHeight * detector.scaleFactor
-                listener.requireInvalidation()
+                val hourHeight = viewState.hourHeight
+                viewState.newHourHeight = hourHeight * detector.scaleFactor
+                onInvalidation()
                 return true
             }
         })
 
     private var isZooming: Boolean = false
 
-    private val minimumFlingVelocity = view.scaledMinimumFlingVelocity
-    private val scaledTouchSlop = view.scaledTouchSlop
-
-    var onEventClickListener: OnEventClickListener<T>? = null
-    var onEventLongClickListener: OnEventLongClickListener<T>? = null
-
-    var onEmptyViewClickListener: OnEmptyViewClickListener? = null
-    var onEmptyViewLongClickListener: OnEmptyViewLongClickListener? = null
+    private val minimumFlingVelocity = context.scaledMinimumFlingVelocity
+    private val scaledTouchSlop = context.scaledTouchSlop
 
     var scrollListener: ScrollListener? = null
 
@@ -106,7 +90,7 @@ internal class WeekViewGestureHandler<T : Any>(
         val absDistanceX = abs(distanceX)
         val absDistanceY = abs(distanceY)
 
-        val canScrollHorizontally = config.horizontalScrollingEnabled
+        val canScrollHorizontally = viewState.horizontalScrollingEnabled
 
         when (currentScrollDirection) {
             NONE -> {
@@ -135,14 +119,14 @@ internal class WeekViewGestureHandler<T : Any>(
         // Calculate the new origin after scroll.
         when {
             currentScrollDirection.isHorizontal -> {
-                config.currentOrigin.x -= distanceX * config.xScrollingSpeed
-                config.currentOrigin.x = min(config.currentOrigin.x, config.maxX)
-                config.currentOrigin.x = max(config.currentOrigin.x, config.minX)
-                listener.requireInvalidation()
+                viewState.currentOrigin.x -= distanceX * viewState.xScrollingSpeed
+                viewState.currentOrigin.x = min(viewState.currentOrigin.x, viewState.maxX)
+                viewState.currentOrigin.x = max(viewState.currentOrigin.x, viewState.minX)
+                onInvalidation()
             }
             currentScrollDirection.isVertical -> {
-                config.currentOrigin.y -= distanceY
-                listener.requireInvalidation()
+                viewState.currentOrigin.y -= distanceY
+                onInvalidation()
             }
             else -> Unit
         }
@@ -161,9 +145,9 @@ internal class WeekViewGestureHandler<T : Any>(
         }
 
         val isHorizontalAndDisabled =
-            currentFlingDirection.isHorizontal && !config.horizontalFlingEnabled
+            currentFlingDirection.isHorizontal && !viewState.horizontalFlingEnabled
 
-        val isVerticalAndDisabled = currentFlingDirection.isVertical && !config.verticalFlingEnabled
+        val isVerticalAndDisabled = currentFlingDirection.isVertical && !viewState.verticalFlingEnabled
 
         if (isHorizontalAndDisabled || isVerticalAndDisabled) {
             return true
@@ -178,26 +162,26 @@ internal class WeekViewGestureHandler<T : Any>(
             else -> Unit
         }
 
-        listener.requireInvalidation()
+        onInvalidation()
         return true
     }
 
     private fun onFlingHorizontal(
         originalVelocityX: Float
     ) {
-        val startX = config.currentOrigin.x.toInt()
-        val startY = config.currentOrigin.y.toInt()
+        val startX = viewState.currentOrigin.x.toInt()
+        val startY = viewState.currentOrigin.y.toInt()
 
-        val velocityX = (originalVelocityX * config.xScrollingSpeed).toInt()
+        val velocityX = (originalVelocityX * viewState.xScrollingSpeed).toInt()
         val velocityY = 0
 
-        val minX = config.minX.toInt()
-        val maxX = config.maxX.toInt()
+        val minX = viewState.minX.toInt()
+        val maxX = viewState.maxX.toInt()
 
-        val dayHeight = config.hourHeight * config.hoursPerDay
-        val viewHeight = view.height
+        val dayHeight = viewState.hourHeight * viewState.hoursPerDay
+        val viewHeight = viewState.height
 
-        val minY = (dayHeight + config.headerHeight - viewHeight).toInt() * -1
+        val minY = (dayHeight + viewState.headerHeight - viewHeight).toInt() * -1
         val maxY = 0
 
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY)
@@ -206,8 +190,8 @@ internal class WeekViewGestureHandler<T : Any>(
     private fun onFlingVertical(
         originalVelocityY: Float
     ) {
-        val startX = config.currentOrigin.x.toInt()
-        val startY = config.currentOrigin.y.toInt()
+        val startX = viewState.currentOrigin.x.toInt()
+        val startY = viewState.currentOrigin.y.toInt()
 
         val velocityX = 0
         val velocityY = originalVelocityY.toInt()
@@ -215,10 +199,10 @@ internal class WeekViewGestureHandler<T : Any>(
         val minX = Int.MIN_VALUE
         val maxX = Int.MAX_VALUE
 
-        val dayHeight = config.hourHeight * config.hoursPerDay
-        val viewHeight = view.height
+        val dayHeight = viewState.hourHeight * viewState.hoursPerDay
+        val viewHeight = viewState.height
 
-        val minY = (dayHeight + config.headerHeight - viewHeight).toInt() * -1
+        val minY = (dayHeight + viewState.headerHeight - viewHeight).toInt() * -1
         val maxY = 0
 
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY)
@@ -227,65 +211,13 @@ internal class WeekViewGestureHandler<T : Any>(
     override fun onSingleTapConfirmed(
         e: MotionEvent
     ): Boolean {
-        onEventClickListener?.let { listener ->
-            val eventChip = findHitEvent(e.x, e.y) ?: return@let
-            if (eventChip.event.isNotAllDay && e.isInHeader) {
-                // The user tapped in the header area and a single event that is rendered below it
-                // has recognized the tap. We ignore this.
-                return@let
-            }
-
-            val data = eventChip.originalEvent.data ?: throw NullPointerException(
-                "Did you pass the original object into the constructor of WeekViewEvent?")
-
-            val rect = checkNotNull(eventChip.bounds)
-            listener.onEventClick(data, rect)
-
-            return super.onSingleTapConfirmed(e)
-        }
-
-        // If the tap was on in an empty space, then trigger the callback.
-        val timeColumnWidth = config.timeColumnWidth
-        val isWithinCalendarArea = e.x > timeColumnWidth && e.y > config.headerHeight
-
-        if (onEmptyViewClickListener != null && isWithinCalendarArea) {
-            val selectedTime = touchHandler.calculateTimeFromPoint(e.x, e.y)
-            if (selectedTime != null) {
-                onEmptyViewClickListener?.onEmptyViewClicked(selectedTime)
-            }
-        }
-
+        touchHandler.handleClick(e.x, e.y)
         return super.onSingleTapConfirmed(e)
     }
 
     override fun onLongPress(e: MotionEvent) {
         super.onLongPress(e)
-
-        onEventLongClickListener?.let { listener ->
-            val eventChip = findHitEvent(e.x, e.y) ?: return@let
-            if (eventChip.event.isNotAllDay && e.isInHeader) {
-                // The user tapped in the header area and a single event that is rendered below it
-                // has recognized the tap. We ignore this.
-                return@let
-            }
-
-            val data = eventChip.originalEvent.data ?: throw NullPointerException(
-                "Did you pass the original object into the constructor of WeekViewEvent?")
-
-            val rect = checkNotNull(eventChip.bounds)
-            listener.onEventLongClick(data, rect)
-            return
-        }
-
-        val timeColumnWidth = config.timeColumnWidth
-
-        // If the tap was on in an empty space, then trigger the callback.
-        onEmptyViewLongClickListener?.let { listener ->
-            if (e.x > timeColumnWidth && e.y > config.headerHeight) {
-                val selectedTime = touchHandler.calculateTimeFromPoint(e.x, e.y) ?: return@let
-                listener.onEmptyViewLongClick(selectedTime)
-            }
-        }
+        touchHandler.handleLongClick(e.x, e.y)
     }
 
     internal fun findHitEvent(x: Float, y: Float): EventChip<T>? {
@@ -300,38 +232,38 @@ internal class WeekViewGestureHandler<T : Any>(
     }
 
     private fun goToNearestOrigin() {
-        val totalDayWidth = config.totalDayWidth
-        val leftDays = (config.currentOrigin.x / totalDayWidth).toDouble()
+        val totalDayWidth = viewState.totalDayWidth
+        val leftDays = (viewState.currentOrigin.x / totalDayWidth).toDouble()
 
         val finalLeftDays = when {
             // snap to nearest day
-            currentFlingDirection.isNotNone -> round(leftDays)
+            currentFlingDirection != NONE -> round(leftDays)
             // snap to last day
-            currentScrollDirection.isLeft -> floor(leftDays)
+            currentScrollDirection == LEFT -> floor(leftDays)
             // snap to next day
-            currentScrollDirection.isRight -> ceil(leftDays)
+            currentScrollDirection == NONE -> ceil(leftDays)
             // snap to nearest day
             else -> round(leftDays)
         }
 
-        val nearestOrigin = (config.currentOrigin.x - finalLeftDays * totalDayWidth).toInt()
+        val nearestOrigin = (viewState.currentOrigin.x - finalLeftDays * totalDayWidth).toInt()
 
         if (nearestOrigin != 0) {
             // Stop current animation
             scroller.forceFinished(true)
 
             // Snap to date
-            val startX = config.currentOrigin.x.toInt()
-            val startY = config.currentOrigin.y.toInt()
+            val startX = viewState.currentOrigin.x.toInt()
+            val startY = viewState.currentOrigin.y.toInt()
 
             val distanceX = -nearestOrigin
             val distanceY = 0
 
-            val daysScrolled = abs(nearestOrigin) / config.widthPerDay
-            val duration = (daysScrolled * config.scrollDuration).toInt()
+            val daysScrolled = abs(nearestOrigin) / viewState.widthPerDay
+            val duration = (daysScrolled * viewState.scrollDuration).toInt()
 
             scroller.startScroll(startX, startY, distanceX, distanceY, duration)
-            listener.requireInvalidation()
+            onInvalidation()
         }
 
         // Reset scrolling and fling direction.
@@ -363,22 +295,22 @@ internal class WeekViewGestureHandler<T : Any>(
 
     fun computeScroll() {
         val isFinished = scroller.isFinished
-        val isFlinging = currentFlingDirection.isNotNone
-        val isScrolling = currentScrollDirection.isNotNone
+        val isFlinging = currentFlingDirection != NONE
+        val isScrolling = currentScrollDirection != NONE
 
         if (isFinished && isFlinging) {
             // Snap to day after fling is finished
             goToNearestOrigin()
-        } else if (isFinished and !isScrolling) {
+        } else if (isFinished && !isScrolling) {
             // Snap to day after scrolling is finished
             goToNearestOrigin()
         } else {
             if (isFlinging && shouldForceFinishScroll()) {
                 goToNearestOrigin()
             } else if (scroller.computeScrollOffset()) {
-                config.currentOrigin.y = scroller.currY.toFloat()
-                config.currentOrigin.x = scroller.currX.toFloat()
-                listener.requireInvalidation()
+                viewState.currentOrigin.x = scroller.currX.toFloat()
+                viewState.currentOrigin.y = scroller.currY.toFloat()
+                onInvalidation()
             }
         }
     }
@@ -387,16 +319,9 @@ internal class WeekViewGestureHandler<T : Any>(
         return scroller.currVelocity <= minimumFlingVelocity
     }
 
-    private val MotionEvent.isInHeader: Boolean
-        get() = y in view.x..config.headerHeight
+    private val Context.scaledMinimumFlingVelocity: Int
+        get() = ViewConfiguration.get(this).scaledMinimumFlingVelocity
 
-    private val View.scaledMinimumFlingVelocity: Int
-        get() = ViewConfiguration.get(context).scaledMinimumFlingVelocity
-
-    private val View.scaledTouchSlop: Int
-        get() = ViewConfiguration.get(context).scaledTouchSlop
-
-    internal interface Listener {
-        fun requireInvalidation()
-    }
+    private val Context.scaledTouchSlop: Int
+        get() = ViewConfiguration.get(this).scaledTouchSlop
 }

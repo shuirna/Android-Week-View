@@ -2,21 +2,18 @@ package com.alamkanak.weekview
 
 import android.graphics.Canvas
 
-internal class HeaderRowDrawer<T : Any>(
-    private val view: WeekView<T>,
-    private val config: WeekViewConfigWrapper
-) : Drawer {
+internal object HeaderRowDrawer : Drawer {
 
     override fun draw(
-        drawingContext: DrawingContext,
+        viewState: WeekViewViewState,
         canvas: Canvas
     ) {
-        val width = view.width.toFloat()
-        canvas.drawRect(0f, 0f, width, config.headerHeight, config.headerBackgroundPaint)
+        val width = viewState.width.toFloat()
+        canvas.drawRect(0f, 0f, width, viewState.headerHeight, viewState.headerBackgroundPaint)
 
-        if (config.showHeaderRowBottomLine) {
-            val top = config.headerHeight - config.headerRowBottomLineWidth
-            canvas.drawLine(0f, top, width, top, config.headerRowBottomLinePaint)
+        if (viewState.showHeaderRowBottomLine) {
+            val top = viewState.headerHeight - viewState.headerRowBottomLineWidth
+            canvas.drawLine(0f, top, width, top, viewState.headerRowBottomLinePaint)
         }
     }
 }
