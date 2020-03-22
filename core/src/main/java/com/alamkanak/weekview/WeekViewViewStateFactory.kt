@@ -106,11 +106,8 @@ internal fun WeekViewViewState(
         daySeparatorStrokeWidth = a.getDimensionPixelSize(R.styleable.WeekView_daySeparatorStrokeWidth, 2),
 
         // Scrolling
-        xScrollingSpeed = a.getFloat(R.styleable.WeekView_xScrollingSpeed, 1f),
-        horizontalFlingEnabled = a.getBoolean(R.styleable.WeekView_horizontalFlingEnabled, true),
         horizontalScrollingEnabled = a.getBoolean(R.styleable.WeekView_horizontalScrollingEnabled, true),
-        verticalFlingEnabled = a.getBoolean(R.styleable.WeekView_verticalFlingEnabled, true),
-        scrollDuration = a.getInt(R.styleable.WeekView_scrollDuration, 250),
+        verticalScrollingEnabled = a.getBoolean(R.styleable.WeekView_verticalScrollingEnabled, true),
 
         // Typeface
         typefaceInfo = TypefaceInfo(

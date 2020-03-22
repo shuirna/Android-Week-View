@@ -104,11 +104,8 @@ internal data class WeekViewViewState(
     var daySeparatorStrokeWidth: Int = 0,
 
     // Scrolling
-    var xScrollingSpeed: Float = 0f, // TODO Remove
-    var verticalFlingEnabled: Boolean = false, // TODO Rename to verticalScrollingEnabled
-    var horizontalFlingEnabled: Boolean = false, // TODO Remove
+    var verticalScrollingEnabled: Boolean = false,
     var horizontalScrollingEnabled: Boolean = false,
-    var scrollDuration: Int = 0, // TODO Remove
 
     // Time range
     var minHour: Int = 0,

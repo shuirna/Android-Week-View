@@ -28,6 +28,8 @@ private enum class Direction {
         get() = this == VERTICAL
 }
 
+internal const val SCROLL_DURATION_IN_MILLIS = 250
+
 internal class WeekViewGestureHandler<T : Any>(
     context: Context,
     private val viewState: WeekViewViewState,
@@ -119,7 +121,7 @@ internal class WeekViewGestureHandler<T : Any>(
         // Calculate the new origin after scroll.
         when {
             currentScrollDirection.isHorizontal -> {
-                viewState.currentOrigin.x -= distanceX * viewState.xScrollingSpeed
+                viewState.currentOrigin.x -= distanceX
                 viewState.currentOrigin.x = min(viewState.currentOrigin.x, viewState.maxX)
                 viewState.currentOrigin.x = max(viewState.currentOrigin.x, viewState.minX)
                 onInvalidation()
@@ -145,9 +147,10 @@ internal class WeekViewGestureHandler<T : Any>(
         }
 
         val isHorizontalAndDisabled =
-            currentFlingDirection.isHorizontal && !viewState.horizontalFlingEnabled
+            currentFlingDirection.isHorizontal && !viewState.horizontalScrollingEnabled
 
-        val isVerticalAndDisabled = currentFlingDirection.isVertical && !viewState.verticalFlingEnabled
+        val isVerticalAndDisabled =
+            currentFlingDirection.isVertical && !viewState.verticalScrollingEnabled
 
         if (isHorizontalAndDisabled || isVerticalAndDisabled) {
             return true
@@ -172,7 +175,7 @@ internal class WeekViewGestureHandler<T : Any>(
         val startX = viewState.currentOrigin.x.toInt()
         val startY = viewState.currentOrigin.y.toInt()
 
-        val velocityX = (originalVelocityX * viewState.xScrollingSpeed).toInt()
+        val velocityX = originalVelocityX.toInt()
         val velocityY = 0
 
         val minX = viewState.minX.toInt()
@@ -260,7 +263,7 @@ internal class WeekViewGestureHandler<T : Any>(
             val distanceY = 0
 
             val daysScrolled = abs(nearestOrigin) / viewState.widthPerDay
-            val duration = (daysScrolled * viewState.scrollDuration).toInt()
+            val duration = (daysScrolled * SCROLL_DURATION_IN_MILLIS).toInt()
 
             scroller.startScroll(startX, startY, distanceX, distanceY, duration)
             onInvalidation()

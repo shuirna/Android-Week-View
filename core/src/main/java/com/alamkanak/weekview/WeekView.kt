@@ -1007,19 +1007,20 @@ class WeekView<T : Any> @JvmOverloads constructor(
     /**
      * Returns the scrolling speed factor in horizontal direction.
      */
-    var xScrollingSpeed: Float
-        get() = viewState.xScrollingSpeed
-        set(value) {
-            viewState.xScrollingSpeed = value
-        }
+    @Deprecated("xScrollingSpeed is no longer being used and will be removed in a future release.")
+    var xScrollingSpeed: Float = 1f
 
     /**
-     * Returns whether WeekView can fling horizontally.
+     * Returns whether WeekView can scroll horizontally.
      */
+    @Deprecated(
+        message = "isHorizontalFlingEnabled is no longer being used and will be removed in a future release.",
+        replaceWith = ReplaceWith("isHorizontalScrollingEnabled")
+    )
     var isHorizontalFlingEnabled: Boolean
-        get() = viewState.horizontalFlingEnabled
+        get() = isHorizontalScrollingEnabled
         set(value) {
-            viewState.horizontalFlingEnabled = value
+            isHorizontalScrollingEnabled = value
         }
 
     /**
@@ -1034,17 +1035,27 @@ class WeekView<T : Any> @JvmOverloads constructor(
     /**
      * Returns whether WeekView can fling vertically.
      */
+    @Deprecated(
+        message = "Use isVerticalScrollingEnabled instead",
+        replaceWith = ReplaceWith("isVerticalScrollingEnabled")
+    )
     var isVerticalFlingEnabled: Boolean
-        get() = viewState.verticalFlingEnabled
+        get() = isVerticalScrollingEnabled
         set(value) {
-            viewState.verticalFlingEnabled = value
+            isVerticalScrollingEnabled = value
         }
 
-    var scrollDuration: Int
-        get() = viewState.scrollDuration
+    /**
+     * Returns whether WeekView can scroll vertically.
+     */
+    var isVerticalScrollingEnabled: Boolean
+        get() = viewState.verticalScrollingEnabled
         set(value) {
-            viewState.scrollDuration = value
+            viewState.verticalScrollingEnabled = value
         }
+
+    @Deprecated("scrollDuration is no longer being used and will be removed in a future release.")
+    var scrollDuration: Int = SCROLL_DURATION_IN_MILLIS
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean = gestureHandler.onTouchEvent(event)
