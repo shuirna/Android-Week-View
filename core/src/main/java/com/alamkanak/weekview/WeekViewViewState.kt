@@ -6,11 +6,11 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.TextPaint
 import com.alamkanak.weekview.Constants.UNINITIALIZED
-import kotlinx.android.parcel.IgnoredOnParcel
 import java.util.Calendar
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.android.parcel.IgnoredOnParcel
 
 internal data class WeekViewViewState(
     // Calendar configuration

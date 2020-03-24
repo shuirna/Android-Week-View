@@ -7,15 +7,15 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.alamkanak.weekview.model.Event
 import com.alamkanak.weekview.util.createDate
 import com.google.common.truth.Truth.assertThat
+import java.util.Calendar.FEBRUARY
+import java.util.Calendar.MARCH
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.`when` as whenever
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.util.Calendar.FEBRUARY
-import java.util.Calendar.MARCH
-import org.mockito.Mockito.`when` as whenever
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
