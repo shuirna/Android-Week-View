@@ -2,17 +2,18 @@ package com.alamkanak.weekview
 
 internal class HeaderRowHeightUpdater<T>(
     private val eventsCacheWrapper: EventsCacheWrapper<T>
-) : Updater {
+) : Updater<T> {
 
-    private var previousHorizontalOrigin: Float? = null
+    private var previousHorizontalOrigin: Int? = null
     private val previousAllDayEventIds = mutableSetOf<Long>()
 
     private val eventsCache: EventsCache<T>
         get() = eventsCacheWrapper.get()
 
-    override fun isRequired(viewState: WeekViewViewState): Boolean {
+    override fun isRequired(viewState: WeekViewViewState<T>): Boolean {
         val didScrollHorizontally = previousHorizontalOrigin != viewState.currentOrigin.x
-        val currentTimeColumnWidth = viewState.timeTextWidth + viewState.timeColumnPadding * 2
+        val currentTimeColumnWidth = checkNotNull(viewState.timeTextWidth) + viewState.timeColumnPadding * 2
+
         val didTimeColumnChange = currentTimeColumnWidth != viewState.timeColumnWidth
         val allDayEvents = eventsCache[viewState.dateRange]
             .filter { it.isAllDay }
@@ -26,11 +27,11 @@ internal class HeaderRowHeightUpdater<T>(
         }
     }
 
-    override fun update(viewState: WeekViewViewState) {
+    override fun update(viewState: WeekViewViewState<T>) {
         previousHorizontalOrigin = viewState.currentOrigin.x
-        viewState.timeColumnWidth = viewState.timeTextWidth + viewState.timeColumnPadding * 2
+        // TODO viewState.timeColumnWidth = checkNotNull(viewState.timeTextWidth) + viewState.timeColumnPadding * 2
 
-        val hasEventsInHeader = eventsCache[viewState.dateRange].any { it.isAllDay }
-        viewState.refreshHeaderRowHeight(hasEventsInHeader)
+        viewState.hasEventsInHeader = eventsCache[viewState.dateRange].any { it.isAllDay }
+        viewState.refreshHeaderHeight()
     }
 }

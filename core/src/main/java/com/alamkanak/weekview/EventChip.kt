@@ -1,5 +1,6 @@
 package com.alamkanak.weekview
 
+import android.graphics.Rect
 import android.graphics.RectF
 
 /**
@@ -27,7 +28,7 @@ internal data class EventChip<T>(
     /**
      * The rectangle in which the [WeekViewEvent] will be drawn.
      */
-    var bounds: RectF? = null
+    var bounds: Rect? = null
 
     /**
      * The relative start position of the [EventChip].
@@ -54,12 +55,12 @@ internal data class EventChip<T>(
     private var availableHeightCache: Int = 0
 
     fun didAvailableAreaChange(
-        area: RectF,
+        area: Rect,
         horizontalPadding: Int,
         verticalPadding: Int
     ): Boolean {
-        val availableWidth = (area.right - area.left - horizontalPadding).toInt()
-        val availableHeight = (area.bottom - area.top - verticalPadding).toInt()
+        val availableWidth = area.right - area.left - horizontalPadding
+        val availableHeight = area.bottom - area.top - verticalPadding
         return availableWidth != availableWidthCache || availableHeight != availableHeightCache
     }
 

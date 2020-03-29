@@ -5,11 +5,12 @@ import android.graphics.Paint
 import com.alamkanak.weekview.Constants.MINUTES_PER_HOUR
 import java.util.Calendar
 import kotlin.math.max
+import kotlin.math.roundToInt
 
-internal object DayBackgroundDrawer : Drawer {
+internal class DayBackgroundDrawer<T> : Drawer<T> {
 
     override fun draw(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) {
         viewState.dateRangeWithStartPixels.forEach { (date, startPixel) ->
@@ -25,24 +26,27 @@ internal object DayBackgroundDrawer : Drawer {
      * @param canvas The [Canvas] on which to draw the background
      */
     private fun drawDayBackground(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         day: Calendar,
-        startPixel: Float,
+        startPixel: Int,
         canvas: Canvas
     ) {
         val endPixel = startPixel + viewState.widthPerDay
-        val isCompletelyHiddenByTimeColumn = endPixel <= viewState.timeColumnWidth
+        val timeColumnWidth = viewState.timeColumnWidth
+
+        val isCompletelyHiddenByTimeColumn = endPixel <= timeColumnWidth
         if (isCompletelyHiddenByTimeColumn) {
             return
         }
 
-        val actualStartPixel = max(startPixel, viewState.timeColumnWidth)
-        val height = viewState.height.toFloat()
+        val actualStartPixel = max(startPixel, timeColumnWidth)
+        val height = viewState.bounds.height
+        val headerHeight = viewState.headerBounds.height
 
         if (viewState.showDistinctPastFutureColor) {
             // val useWeekendColor = day.isWeekend && config.showDistinctWeekendColor
-            val startY = viewState.headerHeight + viewState.currentOrigin.y
-            val endX = startPixel + viewState.widthPerDay
+            val startY = headerHeight + viewState.currentOrigin.y
+            val endX = startPixel + viewState.drawableWidthPerDay
 
             when {
                 day.isToday -> {
@@ -61,38 +65,38 @@ internal object DayBackgroundDrawer : Drawer {
             }
         } else {
             val todayPaint = viewState.getNormalDayBackgroundPaint(day)
-            val right = startPixel + viewState.widthPerDay
-            canvas.drawRect(actualStartPixel, viewState.headerHeight, right, height, todayPaint)
+            val right = startPixel + viewState.drawableWidthPerDay
+            canvas.drawRect(actualStartPixel, headerHeight, right, height, todayPaint)
         }
     }
 
     private fun drawPastAndFutureRect(
-        viewState: WeekViewViewState,
-        startX: Float,
-        startY: Float,
-        endX: Float,
+        viewState: WeekViewViewState<T>,
+        startX: Int,
+        startY: Int,
+        endX: Int,
         pastPaint: Paint,
         futurePaint: Paint,
-        height: Float,
+        height: Int,
         canvas: Canvas
     ) {
         val now = now()
-        val beforeNow = (now.hour + now.minute / MINUTES_PER_HOUR) * viewState.hourHeight
+        val beforeNow = (now.hour + now.minute / MINUTES_PER_HOUR).roundToInt() * viewState.hourHeight
         canvas.drawRect(startX, startY, endX, startY + beforeNow, pastPaint)
         canvas.drawRect(startX, startY + beforeNow, endX, height, futurePaint)
     }
 }
 
-private fun WeekViewViewState.getPastBackgroundPaint(date: Calendar): Paint {
+private fun <T> WeekViewViewState<T>.getPastBackgroundPaint(date: Calendar): Paint {
     val useWeekendColor = date.isWeekend && showDistinctWeekendColor
     return if (useWeekendColor) pastWeekendBackgroundPaint else pastBackgroundPaint
 }
 
-private fun WeekViewViewState.getFutureBackgroundPaint(date: Calendar): Paint {
+private fun <T> WeekViewViewState<T>.getFutureBackgroundPaint(date: Calendar): Paint {
     val useWeekendColor = date.isWeekend && showDistinctWeekendColor
     return if (useWeekendColor) futureWeekendBackgroundPaint else futureBackgroundPaint
 }
 
-private fun WeekViewViewState.getNormalDayBackgroundPaint(date: Calendar): Paint {
+private fun <T> WeekViewViewState<T>.getNormalDayBackgroundPaint(date: Calendar): Paint {
     return if (date.isToday) todayBackgroundPaint else dayBackgroundPaint
 }

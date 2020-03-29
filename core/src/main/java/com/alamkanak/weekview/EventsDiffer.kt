@@ -20,7 +20,7 @@ class MainExecutor : Executor {
 internal class EventsDiffer<T>(
     private val eventsCacheWrapper: EventsCacheWrapper<T>,
     private val eventChipsLoader: EventChipsLoader<T>,
-    private val viewState: WeekViewViewState
+    private val viewState: WeekViewViewState<T>
 ) {
 
     private val backgroundExecutor = Executors.newSingleThreadExecutor()

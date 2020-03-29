@@ -2,90 +2,137 @@ package com.alamkanak.weekview
 
 import android.graphics.Canvas
 import kotlin.math.max
-import kotlin.math.roundToInt
 
-internal object BackgroundGridDrawer : Drawer {
+internal class BackgroundGridDrawer<T> : Drawer<T> {
 
-    private lateinit var hourLines: FloatArray
+    private lateinit var hourLines: IntArray
 
     override fun draw(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) {
         viewState.startPixels.forEach { startPixel ->
-            val startX = max(startPixel, viewState.timeColumnWidth)
-            drawGrid(viewState, startX, startPixel, canvas)
+            val actualStartPixel = max(startPixel, viewState.timeColumnWidth)
+            canvas.drawGrid(viewState, actualStartPixel, startPixel)
         }
     }
 
-    private fun createHourLines(viewState: WeekViewViewState): FloatArray {
-        val headerHeight = viewState.getTotalHeaderHeight()
-        val gridHeight = viewState.height - headerHeight.toInt()
+    private fun createHourLines(viewState: WeekViewViewState<T>): IntArray {
+        val gridHeight = viewState.calendarAreaBounds.height
         val linesPerDay = (gridHeight / viewState.hourHeight) + 1
-        val overallLines = linesPerDay.roundToInt() * (viewState.numberOfVisibleDays + 1)
-        return FloatArray(overallLines * 4) // 4 lines make a cube in the grid
+        val overallLines = linesPerDay * (viewState.numberOfVisibleDays + 1)
+        return IntArray(overallLines * 4) // 4 lines make a cube in the grid
     }
 
-    private fun drawGrid(
-        viewState: WeekViewViewState,
-        startX: Float,
-        startPixel: Float,
-        canvas: Canvas
+    private fun Canvas.drawGrid(
+        viewState: WeekViewViewState<T>,
+        actualStartPixel: Int,
+        startPixel: Int
     ) {
         if (viewState.showHourSeparators) {
             hourLines = createHourLines(viewState)
-            drawHourLines(viewState, startX, startPixel, canvas)
+            drawHourLines(viewState, actualStartPixel, startPixel)
         }
 
         if (viewState.showDaySeparators) {
-            drawDaySeparators(viewState, startPixel, canvas)
+            drawDaySeparators(viewState, startPixel)
         }
     }
 
-    private fun drawDaySeparators(
-        viewState: WeekViewViewState,
-        startPixel: Float,
-        canvas: Canvas
+    private fun Canvas.drawDaySeparators(
+        viewState: WeekViewViewState<T>,
+        startPixel: Int
     ) {
         val days = viewState.numberOfVisibleDays
-        val widthPerDay = viewState.totalDayWidth
-        val top = viewState.headerHeight
+        val widthPerDay = viewState.widthPerDay
+        val top = viewState.headerBounds.height
 
         for (i in 0 until days) {
             val start = startPixel + widthPerDay * (i + 1)
-            canvas.drawLine(start, top, start, top + viewState.height, viewState.daySeparatorPaint)
+            drawLine(
+                startX = start,
+                startY = top,
+                endX = start,
+                endY = top + viewState.bounds.height,
+                paint = viewState.daySeparatorPaint
+            )
         }
     }
 
-    private fun drawHourLines(
-        viewState: WeekViewViewState,
-        startX: Float,
-        startPixel: Float,
-        canvas: Canvas
+    private fun Canvas.drawHourLines(
+        viewState: WeekViewViewState<T>,
+        actualStartPixel: Int,
+        startPixel: Int
     ) {
         val hourStep = viewState.timeColumnHoursInterval
-        var lineIndex = 0
+        val hoursRange = hourStep until viewState.hoursPerDay
+        val hoursSteps = (hoursRange step viewState.timeColumnHoursInterval).toList()
 
-        for (hour in hourStep until viewState.hoursPerDay step hourStep) {
+        val headerHeight = viewState.headerBounds.height
+        val widthPerDay = viewState.widthPerDay
+        val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
+
+        val hourLines = hoursSteps.flatMap { hour ->
             val heightOfHour = (viewState.hourHeight * hour)
-            val top = viewState.headerHeight + viewState.currentOrigin.y + heightOfHour
+            val top = headerHeight + viewState.currentOrigin.y + heightOfHour
 
-            val widthPerDay = viewState.totalDayWidth
-            val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
-
-            val isNotHiddenByHeader = top > viewState.headerHeight - separatorWidth
-            val isWithinVisibleRange = top < viewState.height
-            val isVisibleHorizontally = startPixel + widthPerDay - startX > 0
+            val isNotHiddenByHeader = top > headerHeight - separatorWidth
+            val isWithinVisibleRange = top < viewState.bounds.height
+            val isVisibleHorizontally = startPixel + widthPerDay - actualStartPixel > 0
 
             if (isNotHiddenByHeader && isWithinVisibleRange && isVisibleHorizontally) {
-                hourLines[lineIndex * 4] = startX
-                hourLines[lineIndex * 4 + 1] = top
-                hourLines[lineIndex * 4 + 2] = startPixel + widthPerDay
-                hourLines[lineIndex * 4 + 3] = top
-                lineIndex++
+                listOf(
+                    actualStartPixel.toFloat(),
+                    top.toFloat(),
+                    (startPixel + widthPerDay).toFloat(),
+                    top.toFloat()
+                )
+            } else {
+                listOf()
             }
         }
 
-        canvas.drawLines(hourLines, viewState.hourSeparatorPaint)
+//        hoursSteps.flatMap { hour ->
+//            val heightOfHour = (viewState.hourHeight * hour)
+//            val top = headerHeight + viewState.currentOrigin.y + heightOfHour
+//
+//            val widthPerDay = viewState.widthPerDay
+//            val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
+//
+//            val isNotHiddenByHeader = top > headerHeight - separatorWidth
+//            val isWithinVisibleRange = top < viewState.bounds.height
+//            val isVisibleHorizontally = startPixel + widthPerDay - actualStartPixel > 0
+//
+//            listOf(
+//                actualStartPixel,
+//                top,
+//                startPixel + widthPerDay,
+//                top
+//            )
+//        }
+
+//        for (hour in hourStep until viewState.hoursPerDay step hourStep) {
+//            val heightOfHour = (viewState.hourHeight * hour)
+//            val top = headerHeight + viewState.currentOrigin.y + heightOfHour
+//
+//            val widthPerDay = viewState.widthPerDay
+//            val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
+//
+//            val isNotHiddenByHeader = top > headerHeight - separatorWidth
+//            val isWithinVisibleRange = top < viewState.bounds.height
+//            val isVisibleHorizontally = startPixel + widthPerDay - actualStartPixel > 0
+//
+//            if (isNotHiddenByHeader && isWithinVisibleRange && isVisibleHorizontally) {
+//                hourLines[lineIndex * 4] = actualStartPixel
+//                hourLines[lineIndex * 4 + 1] = top
+//                hourLines[lineIndex * 4 + 2] = (startPixel + widthPerDay)
+//                hourLines[lineIndex * 4 + 3] = top
+//                lineIndex++
+//            }
+//        }
+
+        drawLines(hourLines.toFloatArray(), viewState.hourSeparatorPaint)
     }
 }
+
+private fun IntProgression.toList() = asIterable().toList()

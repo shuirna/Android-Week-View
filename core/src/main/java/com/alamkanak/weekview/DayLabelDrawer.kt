@@ -3,22 +3,18 @@ package com.alamkanak.weekview
 import android.graphics.Canvas
 import android.util.SparseArray
 import java.util.Calendar
+import kotlin.math.roundToInt
 
 internal class DayLabelDrawer<T>(
     private val cache: WeekViewCache<T>,
     private val dateTimeInterpreter: DateTimeInterpreter
-) : CachingDrawer {
+) : Drawer<T> {
 
     override fun draw(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) {
-        val left = viewState.timeColumnWidth
-        val top = 0f
-        val right = canvas.width.toFloat()
-        val bottom = viewState.getTotalHeaderHeight()
-
-        canvas.drawInRect(left, top, right, bottom) {
+        canvas.drawInRect(viewState.headerBounds) {
             viewState.dateRangeWithStartPixels.forEach { (date, startPixel) ->
                 drawLabel(viewState, date, startPixel)
             }
@@ -26,14 +22,14 @@ internal class DayLabelDrawer<T>(
     }
 
     private fun Canvas.drawLabel(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         day: Calendar,
-        startPixel: Float
+        startPixel: Int
     ) {
         val key = day.toEpochDays()
         val dayLabel = cache.dateLabels.get(key) { provideAndCacheDayLabel(key, day) }
 
-        val x = startPixel + viewState.widthPerDay / 2
+        val x = startPixel + viewState.drawableWidthPerDay.scaleBy(0.5f)
 
         val textPaint = if (day.isToday) {
             viewState.todayHeaderTextPaint
@@ -42,12 +38,13 @@ internal class DayLabelDrawer<T>(
         }
 
         if (viewState.singleLineHeader) {
-            val y = viewState.headerRowPadding.toFloat() - textPaint.ascent()
+            val y = viewState.headerRowPadding - textPaint.ascent().roundToInt()
             drawText(dayLabel, x, y, textPaint)
         } else {
             // Draw the multi-line header
             val staticLayout = cache.multiLineDayLabels.get(key)
-            val y = viewState.headerRowPadding.toFloat()
+            val y = viewState.headerRowPadding
+
             withTranslation(x, y) {
                 staticLayout.draw(this)
             }
@@ -58,11 +55,6 @@ internal class DayLabelDrawer<T>(
         return dateTimeInterpreter.interpretDate(day).also {
             cache.dateLabels.put(key, it)
         }
-    }
-
-    override fun clear(viewState: WeekViewViewState) {
-        cache.dateLabels.clear()
-        cache.multiLineDayLabels.clear()
     }
 
     private fun <E> SparseArray<E>.get(key: Int, providerIfEmpty: () -> E): E {

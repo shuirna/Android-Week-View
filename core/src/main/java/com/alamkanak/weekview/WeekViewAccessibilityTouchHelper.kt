@@ -2,6 +2,7 @@ package com.alamkanak.weekview
 
 import android.content.Context
 import android.graphics.Rect
+import android.graphics.RectF
 import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
@@ -12,7 +13,6 @@ import java.text.DateFormat.LONG
 import java.text.DateFormat.SHORT
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import kotlin.math.roundToInt
 
 internal val Context.isAccessibilityEnabled: Boolean
     get() {
@@ -22,7 +22,7 @@ internal val Context.isAccessibilityEnabled: Boolean
 
 internal class WeekViewAccessibilityTouchHelper<T : Any>(
     view: WeekView<T>,
-    private val viewState: WeekViewViewState,
+    private val viewState: WeekViewViewState<T>,
     private val gestureHandler: WeekViewGestureHandler<T>,
     private val eventChipCache: EventChipCache<T>,
     private val touchHandler: WeekViewTouchHandler<T>
@@ -86,12 +86,12 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
 
         return when (action) {
             AccessibilityNodeInfoCompat.ACTION_CLICK -> {
-                touchHandler.onEventClickListener?.onEventClick(data, rect)
+                touchHandler.onEventClickListener?.onEventClick(data, RectF(rect))
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
                 true
             }
             AccessibilityNodeInfoCompat.ACTION_LONG_CLICK -> {
-                touchHandler.onEventLongClickListener?.onEventLongClick(data, rect)
+                touchHandler.onEventLongClickListener?.onEventLongClick(data, RectF(rect))
                 sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
                 true
             }
@@ -146,10 +146,7 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
 
         node.addAction(AccessibilityActionCompat.ACTION_CLICK)
         node.addAction(AccessibilityActionCompat.ACTION_LONG_CLICK)
-
-        val bounds = Rect()
-        eventChip.bounds?.round(bounds)
-        node.setBoundsInParent(bounds)
+        node.setBoundsInParent(eventChip.bounds)
     }
 
     private fun populateNodeWithDateInfo(
@@ -164,10 +161,10 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
         val dateWithStartPixel = viewState.dateRangeWithStartPixels
             .firstOrNull { it.first == date } ?: return
 
-        val left = dateWithStartPixel.second.roundToInt()
-        val right = left + viewState.totalDayWidth.roundToInt()
-        val top = viewState.headerHeight.roundToInt()
-        val bottom = viewState.height
+        val left = dateWithStartPixel.second
+        val right = left + viewState.widthPerDay
+        val top = viewState.calendarAreaBounds.top
+        val bottom = viewState.calendarAreaBounds.bottom
 
         val bounds = Rect(left, top, right, bottom)
         node.setBoundsInParent(bounds)

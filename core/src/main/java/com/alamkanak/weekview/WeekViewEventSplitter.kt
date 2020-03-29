@@ -1,7 +1,7 @@
 package com.alamkanak.weekview
 
 internal class WeekViewEventSplitter<T>(
-    private val viewState: WeekViewViewState
+    private val viewState: WeekViewViewState<T>
 ) {
 
     fun split(event: WeekViewEvent<T>): List<WeekViewEvent<T>> {

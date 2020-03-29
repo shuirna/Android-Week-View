@@ -1,7 +1,7 @@
 package com.alamkanak.weekview
 
 internal class EventChipsExpander<T>(
-    private val viewState: WeekViewViewState,
+    private val viewState: WeekViewViewState<T>,
     private val chipCache: EventChipCache<T>
 ) {
 

@@ -1,26 +1,27 @@
 package com.alamkanak.weekview
 
-import com.alamkanak.weekview.Constants.UNINITIALIZED
-
-internal class TimeColumnUpdater(
+@Deprecated("")
+internal class TimeColumnUpdater<T>(
     private val dateTimeInterpreter: DateTimeInterpreter
-) : Updater {
+) : Updater<T> {
 
     private var previousDateTimeInterpreter: Int? = null
 
     override fun isRequired(
-        viewState: WeekViewViewState
+        viewState: WeekViewViewState<T>
     ): Boolean {
+        /*
         val currentDateTimeInterpreter = dateTimeInterpreter.hashCode()
         val hasInterpreterChanged = currentDateTimeInterpreter != previousDateTimeInterpreter
-        val isNotInitialized =
-            viewState.timeTextWidth == UNINITIALIZED || viewState.timeTextHeight == UNINITIALIZED
+        val isNotInitialized = viewState.timeTextWidth == null || viewState.timeTextHeight == null
 
         previousDateTimeInterpreter = dateTimeInterpreter.hashCode()
         return hasInterpreterChanged || isNotInitialized
+        */
+        return true
     }
 
-    override fun update(viewState: WeekViewViewState) {
-        viewState.updateTimeColumnText(dateTimeInterpreter)
+    override fun update(viewState: WeekViewViewState<T>) {
+        // viewState.updateTimeColumnText(dateTimeInterpreter)
     }
 }

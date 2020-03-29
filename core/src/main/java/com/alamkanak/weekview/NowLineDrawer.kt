@@ -1,13 +1,15 @@
 package com.alamkanak.weekview
 
 import android.graphics.Canvas
+import android.graphics.Paint
 import com.alamkanak.weekview.Constants.MINUTES_PER_HOUR
 import kotlin.math.max
+import kotlin.math.roundToInt
 
-internal object NowLineDrawer : Drawer {
+internal class NowLineDrawer<T>() : Drawer<T> {
 
     override fun draw(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) {
         if (viewState.showNowLine.not()) {
@@ -24,35 +26,35 @@ internal object NowLineDrawer : Drawer {
     }
 
     private fun drawLine(
-        viewState: WeekViewViewState,
-        startPixel: Float,
+        viewState: WeekViewViewState<T>,
+        startPixel: Int,
         canvas: Canvas
     ) {
-        val top = viewState.headerHeight + viewState.currentOrigin.y
+        val top = viewState.headerBounds.height + viewState.currentOrigin.y
         val now = now()
 
         val portionOfDay = (now.hour - viewState.minHour) + now.minute / MINUTES_PER_HOUR
         val portionOfDayInPixels = portionOfDay * viewState.hourHeight
-        val verticalOffset = top + portionOfDayInPixels
+        val verticalOffset = top + portionOfDayInPixels.roundToInt()
 
-        val startX = max(startPixel, viewState.timeColumnWidth)
-        val endX = startPixel + viewState.totalDayWidth
+        val timeColumnWidth = viewState.timeColumnWidth
+        val startX = max(startPixel, timeColumnWidth)
+        val endX = startPixel + viewState.widthPerDay
         canvas.drawLine(startX, verticalOffset, endX, verticalOffset, viewState.nowLinePaint)
 
         if (viewState.showNowLineDot) {
-            drawDot(viewState, startPixel, verticalOffset, canvas)
+            canvas.drawDot(viewState.nowDotPaint, startPixel, verticalOffset)
         }
     }
 
-    private fun drawDot(
-        viewState: WeekViewViewState,
-        startPixel: Float,
-        lineStartY: Float,
-        canvas: Canvas
+    private fun Canvas.drawDot(
+        paint: Paint,
+        startPixel: Int,
+        lineStartY: Int
     ) {
         // We use a margin to prevent the dot from sticking on the left side of the screen
-        val dotRadius = viewState.nowDotPaint.strokeWidth
-        val dotMargin = 32f
-        canvas.drawCircle(startPixel + dotMargin, lineStartY, dotRadius, viewState.nowDotPaint)
+        val dotRadius = paint.strokeWidth.roundToInt()
+        val x = startPixel + 32
+        drawCircle(x, lineStartY, dotRadius, paint)
     }
 }

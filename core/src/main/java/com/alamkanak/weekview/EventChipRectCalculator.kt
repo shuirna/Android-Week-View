@@ -1,15 +1,16 @@
 package com.alamkanak.weekview
 
-import android.graphics.RectF
+import android.graphics.Rect
+import kotlin.math.roundToInt
 
 internal class EventChipRectCalculator<T> {
 
     fun calculateSingleEvent(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         eventChip: EventChip<T>,
-        startPixel: Float
-    ): RectF {
-        val widthPerDay = viewState.widthPerDay
+        startPixel: Int
+    ): Rect {
+        val widthPerDay = viewState.drawableWidthPerDay
         val singleVerticalMargin = viewState.eventMarginVertical / 2
 
         val minutesFromStart = eventChip.minutesFromStartHour
@@ -18,15 +19,15 @@ internal class EventChipRectCalculator<T> {
         val bottomMinutesFromStart = minutesFromStart + eventChip.event.durationInMinutes
         val bottom = calculateDistanceFromTop(viewState, bottomMinutesFromStart) - singleVerticalMargin
 
-        var left = startPixel + eventChip.relativeStart * widthPerDay
-        var right = left + eventChip.relativeWidth * widthPerDay
+        var left = startPixel + (eventChip.relativeStart * widthPerDay).roundToInt()
+        var right = left + (eventChip.relativeWidth * widthPerDay).roundToInt()
 
         if (left > startPixel) {
-            left += viewState.overlappingEventGap / 2
+            left += (viewState.overlappingEventGap / 2f).roundToInt()
         }
 
         if (right < startPixel + widthPerDay) {
-            right -= viewState.overlappingEventGap / 2
+            right -= (viewState.overlappingEventGap / 2f).roundToInt()
         }
 
         val hasNoOverlaps = (right == startPixel + widthPerDay)
@@ -34,38 +35,38 @@ internal class EventChipRectCalculator<T> {
             right -= viewState.eventMarginHorizontal * 2
         }
 
-        return RectF(left, top, right, bottom)
+        return Rect(left, top, right, bottom)
     }
 
     private fun calculateDistanceFromTop(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         minutesFromStart: Int
-    ): Float = with(viewState) {
-        val portionOfDay = minutesFromStart.toFloat() / minutesPerDay
+    ): Int = with(viewState) {
+        val portionOfDay = (minutesFromStart / minutesPerDay.toFloat()).roundToInt()
         val pixelsFromTop = hourHeight * hoursPerDay * portionOfDay
-        return pixelsFromTop + currentOrigin.y + headerHeight
+        return pixelsFromTop + currentOrigin.y + headerBounds.height
     }
 
     fun calculateAllDayEvent(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         eventChip: EventChip<T>,
-        startPixel: Float
-    ): RectF {
-        val top = viewState.headerTextHeight + viewState.headerRowPadding * 1.5f
-        val height = viewState.allDayEventTextPaint.textSize + viewState.eventPaddingVertical * 2
+        startPixel: Int
+    ): Rect {
+        val top = checkNotNull(viewState.headerTextHeight) + (viewState.headerRowPadding * 1.5f).roundToInt()
+        val height = viewState.allDayEventTextPaint.textSize.roundToInt() + viewState.eventPaddingVertical * 2
         val bottom = top + height
 
-        val widthPerDay = viewState.widthPerDay
+        val widthPerDay = viewState.drawableWidthPerDay
 
-        var left = startPixel + eventChip.relativeStart * widthPerDay
-        var right = left + eventChip.relativeWidth * widthPerDay
+        var left = startPixel + (eventChip.relativeStart * widthPerDay).roundToInt()
+        var right = left + (eventChip.relativeWidth * widthPerDay).roundToInt()
 
         if (left > startPixel) {
-            left += viewState.overlappingEventGap / 2f
+            left += (viewState.overlappingEventGap / 2f).roundToInt()
         }
 
         if (right < startPixel + widthPerDay) {
-            right -= viewState.overlappingEventGap / 2f
+            right -= (viewState.overlappingEventGap / 2f).roundToInt()
         }
 
         val hasNoOverlaps = (right == startPixel + widthPerDay)
@@ -73,6 +74,6 @@ internal class EventChipRectCalculator<T> {
             right -= viewState.eventMarginHorizontal * 2
         }
 
-        return RectF(left, top, right, bottom)
+        return Rect(left, top, right, bottom)
     }
 }

@@ -18,6 +18,13 @@
         <attr name="showFirstDayOfWeekFirst" format="boolean" />
         <attr name="showCurrentTimeFirst" format="boolean" />
 
+        <!-- Week number -->
+        <attr name="showWeekNumber" format="boolean" />
+        <attr name="weekNumberTextColor" format="color" />
+        <attr name="weekNumberTextSize" format="dimension" />
+        <attr name="weekNumberBackgroundColor" format="color" />
+        <attr name="weekNumberBackgroundCornerRadius" format="dimension" />
+
         <!-- Header bottom line -->
         <attr name="showHeaderRowBottomLine" format="boolean" />
         <attr name="headerRowBottomLineColor" format="color" />

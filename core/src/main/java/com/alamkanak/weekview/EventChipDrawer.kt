@@ -3,6 +3,7 @@ package com.alamkanak.weekview
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.text.SpannableStringBuilder
@@ -12,11 +13,11 @@ import androidx.core.content.ContextCompat
 import com.alamkanak.weekview.WeekViewEvent.ColorResource
 import com.alamkanak.weekview.WeekViewEvent.DimenResource
 import com.alamkanak.weekview.WeekViewEvent.TextResource
+import kotlin.math.roundToInt
 
 internal class EventChipDrawer<T>(
     private val context: Context,
-    private val viewState: WeekViewViewState,
-    private val emojiTextProcessor: EmojiTextProcessor = EmojiTextProcessor()
+    private val viewState: WeekViewViewState<T>
 ) {
 
     private val textFitter = TextFitter<T>(context, viewState)
@@ -74,12 +75,12 @@ internal class EventChipDrawer<T>(
         updateBackgroundPaint(event, backgroundPaint)
 
         if (event.startsOnEarlierDay(originalEvent)) {
-            val topRect = RectF(rect.left, rect.top, rect.right, rect.top + cornerRadius)
+            val topRect = Rect(rect.left, rect.top, rect.right, rect.top + cornerRadius.roundToInt())
             canvas.drawRect(topRect, backgroundPaint)
         }
 
         if (event.endsOnLaterDay(originalEvent)) {
-            val bottomRect = RectF(rect.left, rect.bottom - cornerRadius, rect.right, rect.bottom)
+            val bottomRect = Rect(rect.left, rect.bottom - cornerRadius.roundToInt(), rect.right, rect.bottom)
             canvas.drawRect(bottomRect, backgroundPaint)
         }
 
@@ -97,7 +98,7 @@ internal class EventChipDrawer<T>(
         val rect = checkNotNull(eventChip.bounds)
 
         val borderWidth = event.style.getBorderWidth(context)
-        val innerWidth = rect.width() - borderWidth * 2
+        val innerWidth = rect.width - borderWidth * 2
 
         val borderStartX = rect.left + borderWidth
         val borderEndX = borderStartX + innerWidth
@@ -108,7 +109,7 @@ internal class EventChipDrawer<T>(
             // Remove top rounded corners by drawing a rectangle
             val borderStartY = rect.top
             val borderEndY = borderStartY + borderWidth
-            val newRect = RectF(borderStartX, borderStartY, borderEndX, borderEndY)
+            val newRect = Rect(borderStartX, borderStartY, borderEndX, borderEndY)
             canvas.drawRect(newRect, backgroundPaint)
         }
 
@@ -116,7 +117,7 @@ internal class EventChipDrawer<T>(
             // Remove bottom rounded corners by drawing a rectangle
             val borderEndY = rect.bottom
             val borderStartY = borderEndY - borderWidth
-            val newRect = RectF(borderStartX, borderStartY, borderEndX, borderEndY)
+            val newRect = Rect(borderStartX, borderStartY, borderEndX, borderEndY)
             canvas.drawRect(newRect, backgroundPaint)
         }
     }
@@ -130,8 +131,8 @@ internal class EventChipDrawer<T>(
         canvas.apply {
             save()
             translate(
-                rect.left + viewState.eventPaddingHorizontal,
-                rect.top + viewState.eventPaddingVertical
+                (rect.left + viewState.eventPaddingHorizontal).toFloat(),
+                (rect.top + viewState.eventPaddingVertical).toFloat()
             )
             textLayout.draw(this)
             restore()
@@ -166,17 +167,17 @@ internal class EventChipDrawer<T>(
             null -> null
         }
 
-        val modifiedTitle = emojiTextProcessor.process(title)
+        val modifiedTitle = title.emojify()
         val text = SpannableStringBuilder(modifiedTitle)
         text.setSpan(StyleSpan(Typeface.BOLD))
 
-        val modifiedLocation = location?.let { emojiTextProcessor.process(it) }
+        val modifiedLocation = location?.emojify()
         if (modifiedLocation != null) {
             text.appendln().append(modifiedLocation)
         }
 
-        val chipHeight = (rect.bottom - rect.top - fullVerticalPadding).toInt()
-        val chipWidth = (rect.right - rect.left - fullHorizontalPadding).toInt()
+        val chipHeight = rect.bottom - rect.top - fullVerticalPadding
+        val chipWidth = rect.right - rect.left - fullHorizontalPadding
 
         if (chipHeight == 0 || chipWidth == 0) {
             return

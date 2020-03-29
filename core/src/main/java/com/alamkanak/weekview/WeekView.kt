@@ -20,7 +20,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private var viewState: WeekViewViewState = WeekViewViewState(context, attrs)
+    private var viewState: WeekViewViewState<T> = WeekViewViewState(context, attrs)
 
     private val cache = WeekViewCache<T>()
     private val eventChipCache = EventChipCache<T>()
@@ -51,6 +51,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private var _dateTimeInterpreter: DateTimeInterpreter =
         DefaultDateTimeInterpreter(RealDateFormatProvider(context), numberOfVisibleDays)
 
+    @Deprecated("")
     var dateTimeInterpreter: DateTimeInterpreter
         get() = _dateTimeInterpreter
         set(value) {
@@ -58,13 +59,23 @@ class WeekView<T : Any> @JvmOverloads constructor(
             clearCaches()
         }
 
+    var dateFormatter: (Calendar) -> String
+        get() = viewState.dateFormatter
+        set(value) { viewState.dateFormatter = value }
+        // TODO clearCaches()
+
+    var timeFormatter: (Int) -> String
+        get() = viewState.timeFormatter
+        set(value) { viewState.timeFormatter = value }
+        // TODO clearCaches()
+
     // Be careful when changing the order of the updaters, as the calculation of any updater might
     // depend on results of previous updaters
     private val updaters = listOf(
         MultiLineDayLabelHeightUpdater(cache, dateTimeInterpreter),
         AllDayEventsUpdater(context, cache, eventChipCache),
         HeaderRowHeightUpdater(eventsCacheWrapper),
-        TimeColumnUpdater(dateTimeInterpreter),
+        // TimeColumnUpdater(dateTimeInterpreter),
         SingleEventsUpdater(eventChipCache)
     )
 
@@ -86,12 +97,12 @@ class WeekView<T : Any> @JvmOverloads constructor(
     // Be careful when changing the order of the drawers, as that might cause
     // views to incorrectly draw over each other
     private val drawers = listOf(
-        DayBackgroundDrawer,
-        BackgroundGridDrawer,
+        DayBackgroundDrawer(),
+        BackgroundGridDrawer(),
         SingleEventsDrawer(context, viewState, eventChipCache),
-        NowLineDrawer,
+        NowLineDrawer(),
         TimeColumnDrawer(viewState, dateTimeInterpreter),
-        HeaderRowDrawer,
+        HeaderRowDrawer(),
         DayLabelDrawer(cache, dateTimeInterpreter),
         AllDayEventsDrawer(context, viewState, cache)
     )
@@ -99,15 +110,6 @@ class WeekView<T : Any> @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         updateViewState()
-
-        viewState.goToDate?.let { date ->
-            goToDate(date)
-        }
-
-        viewState.goToHour?.let { hour ->
-            goToHour(hour)
-        }
-
         notifyScrollListeners()
         refreshEvents()
         updateDimensions()
@@ -116,6 +118,14 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
     private fun updateViewState() {
         viewState.update()
+
+        viewState.goToDate?.let { date ->
+            goToDate(date)
+        }
+
+        viewState.goToHour?.let { hour ->
+            goToHour(hour)
+        }
     }
 
     private fun refreshEvents() {
@@ -173,7 +183,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
-        viewState.onSizeChanged(width, height, dateTimeInterpreter)
+        viewState.onSizeChanged(bounds = bounds)
 
         // todo move this, have the clearing be initiated by viewstate somehow
         clearCaches()
@@ -181,17 +191,17 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        viewState.x = x
-        viewState.y = y
+        viewState.x = x.roundToInt()
+        viewState.y = y.roundToInt()
     }
 
     private fun notifyScrollListeners() {
         val oldFirstVisibleDay = viewState.firstVisibleDate
-        val totalDayWidth = viewState.totalDayWidth
+        val totalDayWidth = viewState.widthPerDay
         val visibleDays = viewState.numberOfVisibleDays
 
-        val daysScrolled = viewState.currentOrigin.x / totalDayWidth
-        val delta = daysScrolled.roundToInt() * (-1)
+        val daysScrolled = (viewState.currentOrigin.x / totalDayWidth.toFloat()).roundToInt()
+        val delta = daysScrolled * (-1)
 
         val firstVisibleDate = today() + Days(delta)
         val lastVisibleDate = firstVisibleDate + Days(visibleDays - 1)
@@ -209,9 +219,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
         }
     }
 
-    private fun calculateWidthPerDay() {
-        viewState.calculateWidthPerDay(dateTimeInterpreter)
-    }
+//    private fun calculateWidthPerDay() {
+//        // viewState.calculateWidthPerDay(dateTimeInterpreter)
+//    }
 
     override fun invalidate() {
         viewState.invalidate()
@@ -245,18 +255,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
     var numberOfVisibleDays: Int
         get() = viewState.numberOfVisibleDays
         set(value) {
+            // dateTimeInterpreter.onSetNumberOfDays(value)
             viewState.numberOfVisibleDays = value
-            dateTimeInterpreter.onSetNumberOfDays(value)
             clearCaches()
-
-            // TODO Unify this stuff
-
-            viewState.firstVisibleDate?.let {
-                // Scroll to first visible day after changing the number of visible days
-                viewState.goToDate = it
-            }
-
-            calculateWidthPerDay()
             invalidate()
         }
 
@@ -742,9 +743,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
      * Returns the current height of an hour.
      */
     var hourHeight: Float
-        get() = viewState.hourHeight
+        get() = viewState.hourHeight.toFloat()
         set(value) {
-            viewState.newHourHeight = value
+            viewState.newHourHeight = value.roundToInt()
             invalidate()
         }
 
@@ -1120,11 +1121,12 @@ class WeekView<T : Any> @JvmOverloads constructor(
         eventsLoader.requireRefresh()
 
         val diff = adjustedDate.daysFromToday
-        viewState.currentOrigin.x = diff.toFloat() * (-1f) * viewState.totalDayWidth
+        viewState.currentOrigin.x = diff * (-1) * viewState.widthPerDay
         invalidate()
     }
 
-    private fun WeekViewViewState.getDateWithinDateRange(date: Calendar): Calendar {
+    // TODO
+    private fun WeekViewViewState<T>.getDateWithinDateRange(date: Calendar): Calendar {
         val minDate = minDate ?: date
         val maxDate = maxDate ?: date
 
@@ -1361,9 +1363,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     }
 
     private fun clearCaches() {
-        drawers
-            .filterIsInstance(CachingDrawer::class.java)
-            .forEach { it.clear(viewState) }
+        viewState.clearCaches(dateTimeInterpreter)
     }
 
     override fun dispatchHoverEvent(

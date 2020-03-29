@@ -8,16 +8,16 @@ import java.util.Calendar
 internal class MultiLineDayLabelHeightUpdater<T : Any>(
     private val cache: WeekViewCache<T>,
     private val dateTimeInterpreter: DateTimeInterpreter
-) : Updater {
+) : Updater<T> {
 
-    private var previousHorizontalOrigin: Float? = null
+    private var previousHorizontalOrigin: Int? = null
 
-    override fun isRequired(viewState: WeekViewViewState): Boolean {
+    override fun isRequired(viewState: WeekViewViewState<T>): Boolean {
         if (viewState.singleLineHeader) {
             return false
         }
 
-        val currentTimeColumnWidth = viewState.timeTextWidth + viewState.timeColumnPadding * 2
+        val currentTimeColumnWidth = checkNotNull(viewState.timeTextWidth) + viewState.timeColumnPadding * 2
         val didTimeColumnChange = currentTimeColumnWidth != viewState.timeColumnWidth
         val didScrollHorizontally = previousHorizontalOrigin != viewState.currentOrigin.x
         val isCacheIncomplete = viewState.numberOfVisibleDays != cache.allDayEventLayouts.size
@@ -25,7 +25,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
         return didTimeColumnChange || didScrollHorizontally || isCacheIncomplete
     }
 
-    override fun update(viewState: WeekViewViewState) {
+    override fun update(viewState: WeekViewViewState<T>) {
         previousHorizontalOrigin = viewState.currentOrigin.x
 
         val multiDayLabels = viewState.dateRange.map {
@@ -41,12 +41,12 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
             .map { it.second }
             .maxBy { it.height }
 
-        viewState.headerTextHeight = staticLayout?.height?.toFloat() ?: 0f
+        viewState.headerTextHeight = staticLayout?.height ?: 0
         viewState.refreshHeaderHeight()
     }
 
     private fun calculateStaticLayoutForDate(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         date: Calendar
     ): StaticLayout {
         val key = date.toEpochDays()
@@ -62,13 +62,13 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
     }
 
     private fun buildStaticLayout(
-        viewState: WeekViewViewState,
+        viewState: WeekViewViewState<T>,
         dayLabel: String,
         textPaint:
         TextPaint
     ): StaticLayout {
-        val width = viewState.totalDayWidth.toInt()
-        return TextLayoutBuilder.build(dayLabel, textPaint, width)
+        val width = viewState.widthPerDay
+        return dayLabel.toTextLayout(textPaint, width)
     }
 
     private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {

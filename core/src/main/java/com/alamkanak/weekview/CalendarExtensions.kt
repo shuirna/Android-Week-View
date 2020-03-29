@@ -37,6 +37,9 @@ internal val Calendar.dayOfWeek: Int
 internal val Calendar.dayOfMonth: Int
     get() = get(Calendar.DAY_OF_MONTH)
 
+internal val Calendar.weekOfYear: Int
+    get() = get(Calendar.WEEK_OF_YEAR)
+
 internal val Calendar.month: Int
     get() = get(Calendar.MONTH)
 
@@ -251,6 +254,9 @@ internal fun getDefaultTimeFormat(is24HourFormat: Boolean): SimpleDateFormat {
     val format = if (is24HourFormat) "HH:mm" else "hh a"
     return SimpleDateFormat(format, Locale.getDefault())
 }
+
+internal fun defaultDateFormatter(): SimpleDateFormat = SimpleDateFormat("EEE M/dd", Locale.getDefault())
+internal fun defaultTimeFormatter(): SimpleDateFormat = SimpleDateFormat("hh a", Locale.getDefault())
 
 internal fun Calendar.format(
     format: Int = java.text.DateFormat.MEDIUM

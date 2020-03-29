@@ -1,11 +1,13 @@
 package com.alamkanak.weekview
 
+import android.graphics.RectF
 import java.util.Calendar
 import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 internal class WeekViewTouchHandler<T : Any>(
-    private val viewState: WeekViewViewState,
+    private val viewState: WeekViewViewState<T>,
     private val chipCache: EventChipCache<T>
 ) {
 
@@ -46,7 +48,7 @@ internal class WeekViewTouchHandler<T : Any>(
         touchX: Float,
         touchY: Float
     ): Calendar? {
-        val widthPerDay = viewState.widthPerDay
+        val widthPerDay = viewState.drawableWidthPerDay
         val totalDayWidth = widthPerDay + viewState.columnGap
         val originX = viewState.currentOrigin.x
         val timeColumnWidth = viewState.timeColumnWidth
@@ -69,7 +71,7 @@ internal class WeekViewTouchHandler<T : Any>(
                 val day = now() + Days(dayNumber - 1)
 
                 val hourHeight = viewState.hourHeight
-                val pixelsFromMidnight = touchY - viewState.currentOrigin.y - viewState.headerHeight
+                val pixelsFromMidnight = touchY - viewState.currentOrigin.y - viewState.headerBounds.height
                 val hour = (pixelsFromMidnight / hourHeight).toInt()
 
                 val pixelsFromFullHour = pixelsFromMidnight - hour * hourHeight
@@ -100,7 +102,7 @@ internal class WeekViewTouchHandler<T : Any>(
         y: Float
     ): Boolean {
         val eventChip = findHitEvent(x, y) ?: return false
-        val isInHeader = y in viewState.x..viewState.headerHeight
+        val isInHeader = y in viewState.x..viewState.headerBounds.bottom
 
         if (eventChip.event.isNotAllDay && isInHeader) {
             // The user tapped in the header area and a single event that is rendered below it
@@ -113,7 +115,7 @@ internal class WeekViewTouchHandler<T : Any>(
         }
 
         val rect = checkNotNull(eventChip.bounds)
-        onEventClick(data, rect)
+        onEventClick(data, RectF(rect))
         return true
     }
 
@@ -122,7 +124,7 @@ internal class WeekViewTouchHandler<T : Any>(
         y: Float
     ) {
         // If the tap was on in an empty space, then trigger the callback.
-        val isWithinCalendarArea = x > viewState.timeColumnWidth && y > viewState.headerHeight
+        val isWithinCalendarArea = viewState.calendarAreaBounds.contains(x.roundToInt(), y.roundToInt())
         if (isWithinCalendarArea) {
             calculateTimeFromPoint(x, y)?.let { time ->
                 onEmptyViewClicked(time)
@@ -134,7 +136,7 @@ internal class WeekViewTouchHandler<T : Any>(
         x: Float,
         y: Float
     ): Boolean {
-        val isInHeader = y in viewState.x..viewState.headerHeight
+        val isInHeader = y in viewState.x..viewState.headerBounds.bottom
         val eventChip = findHitEvent(x, y) ?: return false
 
         if (eventChip.event.isNotAllDay && isInHeader) {
@@ -147,13 +149,14 @@ internal class WeekViewTouchHandler<T : Any>(
             "Did you pass the original object into the constructor of WeekViewEvent?")
 
         val rect = checkNotNull(eventChip.bounds)
-        onEventLongClick(data, rect)
+        onEventLongClick(data, RectF(rect))
 
         return true
     }
 
     private fun OnEmptyViewLongClickListener.handleLongClick(x: Float, y: Float) {
-        if (x > viewState.timeColumnWidth && y > viewState.headerHeight) {
+        val isInCalendarArea = viewState.calendarAreaBounds.contains(x.roundToInt(), y.roundToInt())
+        if (isInCalendarArea) {
             calculateTimeFromPoint(x, y)?.let { time ->
                 onEmptyViewLongClick(time)
             }

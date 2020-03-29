@@ -7,7 +7,7 @@ import androidx.core.content.ContextCompat
 
 internal fun <T> WeekViewEvent<T>.getTextPaint(
     context: Context,
-    viewState: WeekViewViewState
+    viewState: WeekViewViewState<T>
 ): TextPaint {
     val textPaint = if (isAllDay) {
         viewState.allDayEventTextPaint

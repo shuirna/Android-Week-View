@@ -11,21 +11,28 @@ private const val SERIF = 2
 private const val MONOSPACE = 3
 
 @Suppress("FunctionName")
-internal fun WeekViewViewState(
+internal fun <T> WeekViewViewState(
     context: Context,
     attrs: AttributeSet?
-): WeekViewViewState {
+): WeekViewViewState<T> {
     val a = context.theme.obtainStyledAttributes(attrs, R.styleable.WeekView, 0, 0)
-    return WeekViewViewState(
+    return WeekViewViewState<T>(
         // Calendar configuration
         firstDayOfWeek = a.getInt(R.styleable.WeekView_firstDayOfWeek, defaultValue = { now().firstDayOfWeek }),
-        numberOfVisibleDays = a.getInt(R.styleable.WeekView_numberOfVisibleDays, 3),
+        _numberOfVisibleDays = a.getInt(R.styleable.WeekView_numberOfVisibleDays, 3),
         restoreNumberOfVisibleDays = a.getBoolean(R.styleable.WeekView_restoreNumberOfVisibleDays, true),
         showFirstDayOfWeekFirst = a.getBoolean(R.styleable.WeekView_showFirstDayOfWeekFirst, false),
         showCurrentTimeFirst = a.getBoolean(R.styleable.WeekView_showCurrentTimeFirst, false),
         showHeaderRowBottomLine = a.getBoolean(R.styleable.WeekView_showHeaderRowBottomLine, false),
         headerRowBottomLineColor = a.getColor(R.styleable.WeekView_headerRowBottomLineColor, Defaults.GRID_COLOR),
         headerRowBottomLineWidth = a.getDimensionPixelSize(R.styleable.WeekView_headerRowBottomLineWidth, 1),
+
+        // Week number
+        showWeekNumber = a.getBoolean(R.styleable.WeekView_showWeekNumber, false),
+        weekNumberTextColor = a.getColor(R.styleable.WeekView_weekNumberTextColor, Color.WHITE),
+        weekNumberTextSize = a.getDimensionPixelSize(R.styleable.WeekView_weekNumberTextSize, Defaults.textSize(context)),
+        weekNumberBackgroundColor = a.getColor(R.styleable.WeekView_weekNumberBackgroundColor, Color.LTGRAY),
+        weekNumberBackgroundCornerRadius = a.getDimensionPixelSize(R.styleable.WeekView_weekNumberBackgroundCornerRadius, 0),
 
         // Time column
         timeColumnTextColor = a.getColor(R.styleable.WeekView_timeColumnTextColor, Color.BLACK),
@@ -79,7 +86,7 @@ internal fun WeekViewViewState(
         futureBackgroundColor = a.getColor(R.styleable.WeekView_futureBackgroundColor, Defaults.FUTURE_BACKGROUND_COLOR),
 
         // Hour height
-        hourHeight = a.getDimension(R.styleable.WeekView_hourHeight, 50f),
+        hourHeight = a.getDimensionPixelSize(R.styleable.WeekView_hourHeight, 50),
         minHourHeight = a.getDimensionPixelSize(R.styleable.WeekView_minHourHeight, 0),
         maxHourHeight = a.getDimensionPixelSize(R.styleable.WeekView_maxHourHeight, 400),
         showCompleteDay = a.getBoolean(R.styleable.WeekView_showCompleteDay, false),

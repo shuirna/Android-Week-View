@@ -17,6 +17,7 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 private enum class Direction {
     NONE, LEFT, RIGHT, VERTICAL;
@@ -32,7 +33,7 @@ internal const val SCROLL_DURATION_IN_MILLIS = 250
 
 internal class WeekViewGestureHandler<T : Any>(
     context: Context,
-    private val viewState: WeekViewViewState,
+    private val viewState: WeekViewViewState<T>,
     private val chipCache: EventChipCache<T>,
     private val touchHandler: WeekViewTouchHandler<T>,
     private val onInvalidation: () -> Unit
@@ -59,7 +60,7 @@ internal class WeekViewGestureHandler<T : Any>(
 
             override fun onScale(detector: ScaleGestureDetector): Boolean {
                 val hourHeight = viewState.hourHeight
-                viewState.newHourHeight = hourHeight * detector.scaleFactor
+                viewState.newHourHeight = (hourHeight * detector.scaleFactor).roundToInt()
                 onInvalidation()
                 return true
             }
@@ -121,13 +122,13 @@ internal class WeekViewGestureHandler<T : Any>(
         // Calculate the new origin after scroll.
         when {
             currentScrollDirection.isHorizontal -> {
-                viewState.currentOrigin.x -= distanceX
+                viewState.currentOrigin.x -= distanceX.roundToInt()
                 viewState.currentOrigin.x = min(viewState.currentOrigin.x, viewState.maxX)
                 viewState.currentOrigin.x = max(viewState.currentOrigin.x, viewState.minX)
                 onInvalidation()
             }
             currentScrollDirection.isVertical -> {
-                viewState.currentOrigin.y -= distanceY
+                viewState.currentOrigin.y -= distanceY.roundToInt()
                 onInvalidation()
             }
             else -> Unit
@@ -172,19 +173,19 @@ internal class WeekViewGestureHandler<T : Any>(
     private fun onFlingHorizontal(
         originalVelocityX: Float
     ) {
-        val startX = viewState.currentOrigin.x.toInt()
-        val startY = viewState.currentOrigin.y.toInt()
+        val startX = viewState.currentOrigin.x
+        val startY = viewState.currentOrigin.y
 
         val velocityX = originalVelocityX.toInt()
         val velocityY = 0
 
-        val minX = viewState.minX.toInt()
-        val maxX = viewState.maxX.toInt()
+        val minX = viewState.minX
+        val maxX = viewState.maxX
 
         val dayHeight = viewState.hourHeight * viewState.hoursPerDay
-        val viewHeight = viewState.height
+        val viewHeight = viewState.bounds.height
 
-        val minY = (dayHeight + viewState.headerHeight - viewHeight).toInt() * -1
+        val minY = (dayHeight + viewState.headerBounds.height - viewHeight) * -1
         val maxY = 0
 
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY)
@@ -193,8 +194,8 @@ internal class WeekViewGestureHandler<T : Any>(
     private fun onFlingVertical(
         originalVelocityY: Float
     ) {
-        val startX = viewState.currentOrigin.x.toInt()
-        val startY = viewState.currentOrigin.y.toInt()
+        val startX = viewState.currentOrigin.x
+        val startY = viewState.currentOrigin.y
 
         val velocityX = 0
         val velocityY = originalVelocityY.toInt()
@@ -203,9 +204,9 @@ internal class WeekViewGestureHandler<T : Any>(
         val maxX = Int.MAX_VALUE
 
         val dayHeight = viewState.hourHeight * viewState.hoursPerDay
-        val viewHeight = viewState.height
+        val viewHeight = viewState.bounds.height
 
-        val minY = (dayHeight + viewState.headerHeight - viewHeight).toInt() * -1
+        val minY = (dayHeight + viewState.headerBounds.height - viewHeight) * -1
         val maxY = 0
 
         scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY)
@@ -235,35 +236,34 @@ internal class WeekViewGestureHandler<T : Any>(
     }
 
     private fun goToNearestOrigin() {
-        val totalDayWidth = viewState.totalDayWidth
-        val leftDays = (viewState.currentOrigin.x / totalDayWidth).toDouble()
+        val dayWidth = viewState.widthPerDay
+        val daysFromOrigin = viewState.currentOrigin.x / dayWidth.toDouble()
 
-        val finalLeftDays = when {
+        val adjustedDaysFromOrigin = when {
             // snap to nearest day
-            currentFlingDirection != NONE -> round(leftDays)
+            currentFlingDirection != NONE -> round(daysFromOrigin)
             // snap to last day
-            currentScrollDirection == LEFT -> floor(leftDays)
+            currentScrollDirection == LEFT -> floor(daysFromOrigin)
             // snap to next day
-            currentScrollDirection == NONE -> ceil(leftDays)
+            currentScrollDirection == NONE -> ceil(daysFromOrigin)
             // snap to nearest day
-            else -> round(leftDays)
+            else -> round(daysFromOrigin)
         }
 
-        val nearestOrigin = (viewState.currentOrigin.x - finalLeftDays * totalDayWidth).toInt()
-
+        val nearestOrigin = (viewState.currentOrigin.x - adjustedDaysFromOrigin * dayWidth).roundToInt()
         if (nearestOrigin != 0) {
             // Stop current animation
             scroller.forceFinished(true)
 
             // Snap to date
-            val startX = viewState.currentOrigin.x.toInt()
-            val startY = viewState.currentOrigin.y.toInt()
+            val startX = viewState.currentOrigin.x
+            val startY = viewState.currentOrigin.y
 
             val distanceX = -nearestOrigin
             val distanceY = 0
 
-            val daysScrolled = abs(nearestOrigin) / viewState.widthPerDay
-            val duration = (daysScrolled * SCROLL_DURATION_IN_MILLIS).toInt()
+            val daysScrolled = abs(nearestOrigin).divideBy(viewState.widthPerDay) // / viewState.widthPerDay
+            val duration = (daysScrolled * SCROLL_DURATION_IN_MILLIS)
 
             scroller.startScroll(startX, startY, distanceX, distanceY, duration)
             onInvalidation()
@@ -311,8 +311,8 @@ internal class WeekViewGestureHandler<T : Any>(
             if (isFlinging && shouldForceFinishScroll()) {
                 goToNearestOrigin()
             } else if (scroller.computeScrollOffset()) {
-                viewState.currentOrigin.x = scroller.currX.toFloat()
-                viewState.currentOrigin.y = scroller.currY.toFloat()
+                viewState.currentOrigin.x = scroller.currX
+                viewState.currentOrigin.y = scroller.currY
                 onInvalidation()
             }
         }
