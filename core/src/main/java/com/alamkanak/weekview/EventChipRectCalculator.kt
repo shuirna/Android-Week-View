@@ -14,10 +14,10 @@ internal class EventChipRectCalculator<T> {
         val singleVerticalMargin = viewState.eventMarginVertical / 2
 
         val minutesFromStart = eventChip.minutesFromStartHour
-        val top = calculateDistanceFromTop(viewState, minutesFromStart) + singleVerticalMargin
+        val top = viewState.calculateDistanceFromTop(minutesFromStart) + singleVerticalMargin
 
         val bottomMinutesFromStart = minutesFromStart + eventChip.event.durationInMinutes
-        val bottom = calculateDistanceFromTop(viewState, bottomMinutesFromStart) - singleVerticalMargin
+        val bottom = viewState.calculateDistanceFromTop(bottomMinutesFromStart) - singleVerticalMargin
 
         var left = startPixel + (eventChip.relativeStart * widthPerDay).roundToInt()
         var right = left + (eventChip.relativeWidth * widthPerDay).roundToInt()
@@ -38,13 +38,12 @@ internal class EventChipRectCalculator<T> {
         return Rect(left, top, right, bottom)
     }
 
-    private fun calculateDistanceFromTop(
-        viewState: WeekViewViewState<T>,
+    private fun WeekViewViewState<T>.calculateDistanceFromTop(
         minutesFromStart: Int
-    ): Int = with(viewState) {
-        val portionOfDay = (minutesFromStart / minutesPerDay.toFloat()).roundToInt()
+    ): Int {
+        val portionOfDay = minutesFromStart / minutesPerDay.toFloat()
         val pixelsFromTop = hourHeight * hoursPerDay * portionOfDay
-        return pixelsFromTop + currentOrigin.y + headerBounds.height
+        return currentOrigin.y + headerBounds.height + pixelsFromTop.roundToInt()
     }
 
     fun calculateAllDayEvent(

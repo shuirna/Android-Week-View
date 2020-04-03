@@ -6,7 +6,6 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.util.Log
 import android.util.SparseArray
 import androidx.collection.ArrayMap
 import java.util.Calendar
@@ -491,7 +490,6 @@ internal data class WeekViewViewState<T>(
         _calendarAreaBounds = _calendarAreaBounds.copy(
             top = headerHeight
         )
-        Log.d("SingleEventsUpdater", "onTimeFormatterUpdated: Calendar area width: ${_calendarAreaBounds.width}")
     }
 
     private fun onTimeFormatterUpdated() {
@@ -516,24 +514,7 @@ internal data class WeekViewViewState<T>(
             left = columnWidth + 1,
             top = headerHeight + 1
         )
-        Log.d("SingleEventsUpdater", "onTimeFormatterUpdated: Calendar area width: ${_calendarAreaBounds.width}")
     }
-
-//    fun updateTimeColumnText(dateTimeInterpreter: DateTimeInterpreter) {
-//        timeTextHeight = calculateTimeTextHeight(dateTimeInterpreter)
-//        timeTextWidth = calculateTimeColumnTextWidth(dateTimeInterpreter)
-//
-//        val columnWidth = checkNotNull(timeTextWidth) + timeColumnPadding * 2
-//        _timeColumnBounds = bounds.copy(
-//            top = _headerBounds.bottom + 1, // todo: +1 the right approach?
-//            right = bounds.left + columnWidth
-//        )
-//    }
-
-//    private fun calculateTimeTextHeight(dateTimeInterpreter: DateTimeInterpreter): Int {
-//        val formattedTime = dateTimeInterpreter.interpretTime(0)
-//        return timeTextPaint.getTextHeight(formattedTime)
-//    }
 
     private fun refreshAfterZooming() {
         if (showCompleteDay) {
@@ -599,7 +580,6 @@ internal data class WeekViewViewState<T>(
             left = columnWidth,
             top = headerHeight
         )
-        Log.d("SingleEventsUpdater", "updateCalendarAreaBounds: Calendar area width: ${_calendarAreaBounds.width}")
     }
 
     fun onSizeChanged(bounds: Rect) {
