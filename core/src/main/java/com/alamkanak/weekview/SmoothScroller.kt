@@ -10,16 +10,14 @@ internal class SmoothScroller {
     val isRunning: Boolean
         get() = valueAnimator?.isStarted ?: false
 
-    val isFinished: Boolean
-        get() = valueAnimator?.isStarted?.not() ?: true
-
     fun scroll(
         fromValue: Int,
         toValue: Int,
         duration: Long = 300,
         onUpdate: (Int) -> Unit
     ) {
-        valueAnimator?.cancel()
+        stop()
+
         valueAnimator = ValueAnimator.ofInt(fromValue, toValue).apply {
             this.duration = duration
             interpolator = DecelerateInterpolator()

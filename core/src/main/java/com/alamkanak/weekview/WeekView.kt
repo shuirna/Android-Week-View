@@ -1058,11 +1058,6 @@ class WeekView<T : Any> @JvmOverloads constructor(
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean = gestureHandler.onTouchEvent(event)
 
-    override fun computeScroll() {
-        super.computeScroll()
-        // gestureHandler.computeScroll()
-    }
-
     /*
      ***********************************************************************************************
      *

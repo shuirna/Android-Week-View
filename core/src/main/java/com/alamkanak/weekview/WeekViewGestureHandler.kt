@@ -11,11 +11,8 @@ import com.alamkanak.weekview.Direction.None
 import com.alamkanak.weekview.Direction.Right
 import java.util.Calendar
 import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 private enum class Direction {
@@ -207,45 +204,33 @@ internal class WeekViewGestureHandler<T : Any>(
         val dayWidth = viewState.widthPerDay
         val daysFromOrigin = viewState.currentOrigin.x / dayWidth.toDouble()
 
-        val adjustedDaysFromOrigin = when {
-            // snap to nearest day
-            currentFlingDirection != None -> round(daysFromOrigin)
-            // snap to last day
-            currentScrollDirection == Left -> floor(daysFromOrigin)
-            // snap to next day
-            currentScrollDirection == None -> ceil(daysFromOrigin)
-            // snap to nearest day
-            else -> round(daysFromOrigin)
-        }
+//        val adjustedDaysFromOrigin = when {
+//            // snap to nearest day
+//            currentFlingDirection != None -> round(daysFromOrigin)
+//            // snap to last day
+//            currentScrollDirection == Left -> floor(daysFromOrigin)
+//            // snap to next day
+//            currentScrollDirection == None -> ceil(daysFromOrigin)
+//            // snap to nearest day
+//            else -> round(daysFromOrigin)
+//        }
+        val adjustedDaysFromOrigin = daysFromOrigin.roundToInt()
 
-        val nearestOrigin = (viewState.currentOrigin.x - adjustedDaysFromOrigin * dayWidth).roundToInt()
+        val nearestOrigin = viewState.currentOrigin.x - adjustedDaysFromOrigin * dayWidth
         if (nearestOrigin != 0) {
-            // Stop current animation
-            // scroller.forceFinished(true)
             smoothScroller.stop()
 
-            // Snap to date
-//            val startX = viewState.currentOrigin.x
-//            val startY = viewState.currentOrigin.y
-
-//            val distanceX = -nearestOrigin
-//            val distanceY = 0
-
-//            val daysScrolled = abs(nearestOrigin).divideBy(viewState.widthPerDay) // / viewState.widthPerDay
-//            val duration = (daysScrolled * SCROLL_DURATION_IN_MILLIS)
-
-            // scroller.startScroll(startX, startY, distanceX, distanceY, duration)
+            val currentOffset = viewState.currentOrigin.x
+            val destinationOffset = adjustedDaysFromOrigin * dayWidth
 
             smoothScroller.scroll(
-                fromValue = 0,
-                toValue = 0,
+                fromValue = currentOffset,
+                toValue = destinationOffset,
                 onUpdate = {
                     viewState.currentOrigin.x = it
                     onInvalidation()
                 }
             )
-
-            onInvalidation()
         }
 
         // Reset scrolling and fling direction.
@@ -258,61 +243,20 @@ internal class WeekViewGestureHandler<T : Any>(
         val handled = gestureDetector.onTouchEvent(event)
 
         if (event.action == ACTION_UP && currentScrollDirection != None && currentFlingDirection == None) {
-            // TODO
             goToNearestOrigin()
             currentScrollDirection = None
         } else if (event.action == ACTION_DOWN) {
             preFlingFirstVisibleDate = checkNotNull(viewState.firstVisibleDate?.copy())
         }
 
-        // Check after call of gestureDetector, so currentFlingDirection and currentScrollDirection
-        // are set
-//        if (event.action == ACTION_UP && /*!isZooming &&*/ currentFlingDirection == NONE) {
-//            if (currentScrollDirection == RIGHT || currentScrollDirection == LEFT) {
-//                goToNearestOrigin()
-//            }
-//            currentScrollDirection = NONE
-//        }
-
         return handled
     }
 
     fun stopScroll() {
         smoothScroller.stop()
-        // scroller.forceFinished(true)
         currentFlingDirection = None
         currentScrollDirection = currentFlingDirection
     }
-
-    fun computeScroll() {
-        // val isFinished = scroller.isFinished
-        val isFinished = smoothScroller.isFinished
-        val isScrolling = currentScrollDirection != None
-        val isFlinging = currentFlingDirection != None
-
-//        if (isFinished && isFlinging) {
-//            // Snap to day after fling is finished
-//            goToNearestOrigin()
-//        } else if (isFinished && !isScrolling) {
-//            // Snap to day after scrolling is finished
-//            goToNearestOrigin()
-//        } else {
-//            if (isFlinging && shouldForceFinishScroll()) {
-//                goToNearestOrigin()
-//            } else if (scroller.computeScrollOffset()) {
-//                viewState.currentOrigin.x = scroller.currX
-//                viewState.currentOrigin.y = scroller.currY
-//                onInvalidation()
-//            }
-//        }
-    }
-
-//    private fun shouldForceFinishScroll(): Boolean {
-//        return scroller.currVelocity <= minimumFlingVelocity
-//    }
-
-    private val Context.scaledMinimumFlingVelocity: Int
-        get() = ViewConfiguration.get(this).scaledMinimumFlingVelocity
 
     private val Context.scaledTouchSlop: Int
         get() = ViewConfiguration.get(this).scaledTouchSlop
