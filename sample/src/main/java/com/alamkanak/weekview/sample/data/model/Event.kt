@@ -1,5 +1,8 @@
 package com.alamkanak.weekview.sample.data.model
 
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import com.alamkanak.weekview.WeekViewDisplayable
 import com.alamkanak.weekview.WeekViewEvent
 import com.alamkanak.weekview.sample.R
@@ -28,9 +31,13 @@ class Event(
             .setBorderColor(if (isCanceled) textColor else backgroundColor)
             .build()
 
-        return WeekViewEvent.Builder<Event>(this)
+        val spannable = SpannableString(title).apply {
+            setSpan(StyleSpan(Typeface.BOLD_ITALIC), 0, title.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        return WeekViewEvent.Builder(this)
             .setId(id)
-            .setTitle(title)
+            .setTitle(spannable)
             .setStartTime(startTime)
             .setEndTime(endTime)
             .setLocation(location)

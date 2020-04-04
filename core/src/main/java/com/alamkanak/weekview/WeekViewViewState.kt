@@ -255,7 +255,6 @@ internal data class WeekViewViewState<T>(
     }
 
     init {
-        // timeTextHeight = timeTextPaint.textHeight
         val hourRange = 0..hoursPerDay
         val timeLabels = hourRange.map { timeFormatter(it) }
 
@@ -263,20 +262,9 @@ internal data class WeekViewViewState<T>(
             cache.timeLabels[hour] = timeLabels[hour]
         }
 
-        // timeLabels.forEach { (hour, label) -> cache.timeLabels[hour] = label }
         val textWidths = timeLabels.map { timeTextPaint.measureText(it).roundToInt() }
         timeTextWidth = textWidths.max() ?: 0
-
-//        cacheTimeLabels2()
-//        timeTextWidth = calculateTimeColumnTextWidth()
     }
-
-//    fun cacheTimeLabels2() {
-//        val cache = cache.timeLabels
-//        for (hour in startHour until hoursPerDay step timeColumnHoursInterval) {
-//            cache.put(hour, timeFormatter(hour + minHour))
-//        }
-//    }
 
     private fun calculateTimeColumnTextWidth() = (0..hoursPerDay)
         .map { timeFormatter(it) }

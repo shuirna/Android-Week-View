@@ -2,7 +2,6 @@ package com.alamkanak.weekview.sample
 
 import android.graphics.RectF
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.alamkanak.weekview.OnEmptyViewLongClickListener
 import com.alamkanak.weekview.OnEventClickListener
@@ -58,13 +57,12 @@ class LimitedActivity : AppCompatActivity(), OnEventClickListener<Event>,
         endDate: Calendar
     ) = database.getEventsInRange(startDate, endDate)
 
-    override fun onEventClick(event: Event, eventRect: RectF) {
-        showToast("Clicked ${event.title}")
+    override fun onEventClick(data: Event, eventRect: RectF) {
+        showToast("Clicked ${data.title}")
     }
 
-    override fun onEventLongClick(event: Event, eventRect: RectF) {
-        showToast("Long-clicked ${event.title}")
-        Toast.makeText(this, "Long pressed event: " + event.title, Toast.LENGTH_SHORT).show()
+    override fun onEventLongClick(data: Event, eventRect: RectF) {
+        showToast("Long-clicked ${data.title}")
     }
 
     override fun onEmptyViewLongClick(time: Calendar) {

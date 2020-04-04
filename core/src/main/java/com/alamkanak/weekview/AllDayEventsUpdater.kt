@@ -3,14 +3,11 @@ package com.alamkanak.weekview
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.text.TextUtils.TruncateAt.END
-import android.text.style.StyleSpan
-import com.alamkanak.weekview.WeekViewEvent.TextResource
 
 internal class AllDayEventsUpdater<T : Any>(
     private val context: Context,
@@ -19,6 +16,7 @@ internal class AllDayEventsUpdater<T : Any>(
 ) : Updater<T> {
 
     private val rectCalculator = EventChipRectCalculator<T>()
+    private val spannableStringBuilder = SpannableStringBuilder()
 
     private var previousHorizontalOrigin: Int? = null
     private var dummyTextLayout: StaticLayout? = null
@@ -65,8 +63,8 @@ internal class AllDayEventsUpdater<T : Any>(
 
         if (isValidEventBounds) {
             val textLayout = calculateChipTextLayout(viewState, eventChip)
-            textLayout?.let { layout ->
-                cache.allDayEventLayouts[eventChip] = layout
+            if (textLayout != null) {
+                cache.allDayEventLayouts[eventChip] = textLayout
             }
         }
     }
@@ -96,26 +94,32 @@ internal class AllDayEventsUpdater<T : Any>(
             return dummyTextLayout
         }
 
-        val title = when (val resource = event.titleResource) {
-            is TextResource.Id -> context.getString(resource.resId)
-            is TextResource.Value -> resource.text
-            null -> ""
-        }
+        spannableStringBuilder.clear()
+        val title = event.titleResource.toSpannableString(context)
+        spannableStringBuilder.append(title)
 
-        val modifiedTitle = title.emojify()
-        val text = SpannableStringBuilder(modifiedTitle)
-        text.setSpan(StyleSpan(Typeface.BOLD))
-
-        val location = when (val resource = event.locationResource) {
-            is TextResource.Id -> context.getString(resource.resId)
-            is TextResource.Value -> resource.text
-            null -> null
-        }
-
+        val location = event.locationResource?.toSpannableString(context)
         if (location != null) {
-            val modifiedLocation = location.emojify()
-            text.append(' ').append(modifiedLocation)
+            spannableStringBuilder.append(" ")
+            spannableStringBuilder.append(location)
         }
+
+        val text = spannableStringBuilder.build()
+
+//        val modifiedTitle = title.emojify()
+//        val text = SpannableStringBuilder(modifiedTitle)
+//        text.setSpan(StyleSpan(Typeface.BOLD))
+
+//        val location = when (val resource = event.locationResource) {
+//            is TextResource.Id -> context.getString(resource.resId)
+//            is TextResource.Value -> resource.text
+//            null -> null
+//        }
+
+//        if (location != null) {
+//            val modifiedLocation = location.emojify()
+//            text.append(' ').append(modifiedLocation)
+//        }
 
         val textPaint = event.getTextPaint(context, viewState)
         val textLayout = text.toTextLayout(textPaint, availableWidth)

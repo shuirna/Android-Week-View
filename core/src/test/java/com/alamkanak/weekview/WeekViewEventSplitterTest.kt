@@ -1,12 +1,18 @@
 package com.alamkanak.weekview
 
+import android.os.Build
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.alamkanak.weekview.model.Event
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.mockito.Mockito.`when`
+import org.junit.runner.RunWith
+import org.mockito.Mockito.`when` as whenever
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
+import org.robolectric.annotation.Config
 
+@RunWith(AndroidJUnit4::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class WeekViewEventSplitterTest {
 
     @Suppress("UNCHECKED_CAST")
@@ -15,8 +21,8 @@ class WeekViewEventSplitterTest {
 
     init {
         MockitoAnnotations.initMocks(this)
-        `when`(viewState.minHour).thenReturn(0)
-        `when`(viewState.maxHour).thenReturn(24)
+        whenever(viewState.minHour).thenReturn(0)
+        whenever(viewState.maxHour).thenReturn(24)
     }
 
     @Test

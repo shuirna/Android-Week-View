@@ -1,16 +1,18 @@
 package com.alamkanak.weekview
 
 import android.content.Context
+import android.text.SpannableString
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DimenRes
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import java.util.Calendar
 import kotlin.math.roundToInt
 
 data class WeekViewEvent<T> internal constructor(
     val id: Long = 0L,
-    internal val titleResource: TextResource? = null,
+    internal val titleResource: TextResource,
     val startTime: Calendar = now(),
     val endTime: Calendar = now(),
     internal val locationResource: TextResource? = null,
@@ -22,11 +24,10 @@ data class WeekViewEvent<T> internal constructor(
     internal val isNotAllDay: Boolean
         get() = isAllDay.not()
 
-    internal val durationInMinutes: Int
-        get() = ((endTime.timeInMillis - startTime.timeInMillis).toFloat() / 60_000).roundToInt()
+    internal val durationInMinutes: Int =
+        ((endTime.timeInMillis - startTime.timeInMillis).toFloat() / 60_000).roundToInt()
 
-    internal val isMultiDay: Boolean
-        get() = startTime.isSameDate(endTime).not()
+    internal val isMultiDay: Boolean = startTime.isSameDate(endTime).not()
 
     internal fun isWithin(
         minHour: Int,
@@ -75,16 +76,26 @@ data class WeekViewEvent<T> internal constructor(
     internal sealed class ColorResource {
         data class Value(@ColorInt val color: Int) : ColorResource()
         data class Id(@ColorRes val resId: Int) : ColorResource()
+
+        @ColorInt
+        fun resolve(
+            context: Context
+        ): Int = when (this) {
+            is Id -> ContextCompat.getColor(context, resId)
+            is Value -> color
+        }
     }
 
     internal sealed class TextResource {
-        data class Value(val text: CharSequence) : TextResource()
+        data class Value(val text: SpannableString) : TextResource()
         data class Id(@StringRes val resId: Int) : TextResource()
 
-        fun resolve(context: Context): CharSequence = when (this) {
-            is Id -> context.getString(resId)
+        fun toSpannableString(
+            context: Context
+        ): SpannableString = when (this) {
+            is Id -> SpannableString(context.getString(resId))
             is Value -> text
-        }
+        }.emojify()
     }
 
     internal sealed class DimenResource {
@@ -174,7 +185,11 @@ data class WeekViewEvent<T> internal constructor(
         }
 
         fun setTitle(title: CharSequence): Builder<T> {
-            this.title = TextResource.Value(title)
+            val spannableString = when (title) {
+                is SpannableString -> title
+                else -> title.bold()
+            }
+            this.title = TextResource.Value(spannableString)
             return this
         }
 
@@ -194,7 +209,11 @@ data class WeekViewEvent<T> internal constructor(
         }
 
         fun setLocation(location: CharSequence): Builder<T> {
-            this.location = TextResource.Value(location)
+            val spannableString = when (location) {
+                is SpannableString -> location
+                else -> SpannableString(location)
+            }
+            this.location = TextResource.Value(spannableString)
             return this
         }
 

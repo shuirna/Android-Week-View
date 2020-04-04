@@ -180,6 +180,13 @@ internal class WeekViewAccessibilityTouchHelper<T : Any>(
     private fun createDescriptionForVirtualView(date: Calendar): String {
         return dateFormatter.format(date.time)
     }
+
+    private fun WeekViewEvent.TextResource.resolve(
+        context: Context
+    ): String = when (this) {
+        is WeekViewEvent.TextResource.Id -> context.getString(resId)
+        is WeekViewEvent.TextResource.Value -> text.toString()
+    }
 }
 
 private class VirtualViewIdStore<T> {

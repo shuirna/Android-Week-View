@@ -1,8 +1,8 @@
 package com.alamkanak.weekview.sample
 
-import android.app.ProgressDialog
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.alamkanak.weekview.WeekView
@@ -13,6 +13,7 @@ import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
 import java.text.SimpleDateFormat
+import kotlinx.android.synthetic.main.activity_async.progressBar
 import kotlinx.android.synthetic.main.view_toolbar.toolbar
 
 private data class AsyncViewState(
@@ -48,14 +49,6 @@ class AsyncActivity : AppCompatActivity() {
         AsyncViewModel(EventsApi(this))
     }
 
-    @Suppress("DEPRECATION")
-    private val progressDialog: ProgressDialog by lazy {
-        ProgressDialog(this).apply {
-            setCancelable(false)
-            setMessage("Loading events ...")
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_basic)
@@ -64,12 +57,7 @@ class AsyncActivity : AppCompatActivity() {
         toolbar.setupWithWeekView(weekView, this)
 
         viewModel.viewState.observe(this, Observer { viewState ->
-            if (viewState.isLoading) {
-                progressDialog.show()
-            } else {
-                progressDialog.dismiss()
-            }
-
+            progressBar.isVisible = viewState.isLoading
             weekView.submit(viewState.events)
         })
 
