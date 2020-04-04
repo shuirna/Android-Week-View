@@ -18,12 +18,12 @@
         app:eventCornerRadius="4dp"
         app:eventTextColor="@android:color/white"
         app:fontFamily="monospace"
-        app:headerRowBottomLineColor="@color/header_bottom_line"
+        app:headerRowBottomLineColor="@color/light_gray"
         app:headerRowBottomLineWidth="1dp"
         app:headerRowPadding="12dp"
         app:hourHeight="60dp"
-        app:nowLineColor="@color/accent"
-        app:nowLineDotColor="@color/accent"
+        app:nowLineColor="@color/light_blue"
+        app:nowLineDotColor="@color/light_blue"
         app:nowLineDotRadius="5dp"
         app:nowLineStrokeWidth="1dp"
         app:numberOfVisibleDays="3"
@@ -36,10 +36,10 @@
         app:singleDayHorizontalMargin="8dp"
         app:timeColumnBackgroundColor="#ffffffff"
         app:timeColumnPadding="8dp"
-        app:timeColumnSeparatorColor="@color/header_bottom_line"
+        app:timeColumnSeparatorColor="@color/light_gray"
         app:timeColumnSeparatorStrokeWidth="1dp"
-        app:timeColumnTextColor="@color/toolbar_text"
+        app:timeColumnTextColor="@color/dark_gray"
         app:timeColumnTextSize="12sp"
-        app:todayHeaderTextColor="@color/accent" />
+        app:todayHeaderTextColor="@color/light_blue" />
 
 </LinearLayout>

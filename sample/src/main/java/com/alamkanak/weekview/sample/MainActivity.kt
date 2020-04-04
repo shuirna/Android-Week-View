@@ -1,12 +1,13 @@
 package com.alamkanak.weekview.sample
 
 import android.content.Intent
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.alamkanak.weekview.sample.util.EqualSpacingItemDecoration
 import kotlin.math.roundToInt
 import kotlinx.android.synthetic.main.activity_main.recyclerView
+import kotlinx.android.synthetic.main.view_toolbar.appBarLayout
 import kotlinx.android.synthetic.main.view_toolbar.toolbar
 
 class MainActivity : AppCompatActivity() {
@@ -16,8 +17,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = SamplesAdapter(SAMPLES, this::onItemClick)
+
+        if (SDK_INT >= 23) {
+            recyclerView.setOnScrollChangeListener { view, _, _, _, _ ->
+                appBarLayout.isSelected = view.canScrollVertically(-1)
+            }
+        }
 
         val spacing = resources.getDimension(R.dimen.default_space).roundToInt()
         recyclerView.addItemDecoration(EqualSpacingItemDecoration(spacing))
