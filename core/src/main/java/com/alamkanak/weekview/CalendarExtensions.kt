@@ -255,7 +255,14 @@ internal fun getDefaultTimeFormat(is24HourFormat: Boolean): SimpleDateFormat {
     return SimpleDateFormat(format, Locale.getDefault())
 }
 
-internal fun defaultDateFormatter(): SimpleDateFormat = SimpleDateFormat("EEE M/dd", Locale.getDefault())
+internal fun defaultDateFormatter(
+    numberOfDays: Int
+): SimpleDateFormat = when (numberOfDays) {
+    1 -> SimpleDateFormat("EEEE M/dd", Locale.getDefault()) // full weekday
+    in 2..6 -> SimpleDateFormat("EEE M/dd", Locale.getDefault()) // first three characters
+    else -> SimpleDateFormat("EEEEE M/dd", Locale.getDefault()) // first character
+}
+
 internal fun defaultTimeFormatter(): SimpleDateFormat = SimpleDateFormat("hh a", Locale.getDefault())
 
 internal fun Calendar.format(

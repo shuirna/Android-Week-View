@@ -7,15 +7,7 @@ import kotlin.math.roundToInt
 typealias HourWithCoordinates = Pair<Int, Point?>
 typealias HourWithValidCoordinates = Pair<Int, Point>
 
-internal class TimeColumnDrawer<T>(
-    viewState: WeekViewViewState<T>,
-    dateTimeInterpreter: DateTimeInterpreter
-) : Drawer<T> {
-
-    init {
-        // TODO Actually move to ViewState
-        viewState.cacheTimeLabels(dateTimeInterpreter)
-    }
+internal class TimeColumnDrawer<T> : Drawer<T> {
 
     override fun draw(
         viewState: WeekViewViewState<T>,
@@ -42,7 +34,7 @@ internal class TimeColumnDrawer<T>(
     ) = with(viewState) {
         drawLine(
             startX = timeColumnBounds.right,
-            startY = timeColumnBounds.top, // TODO
+            startY = timeColumnBounds.top,
             endX = timeColumnBounds.right,
             endY = timeColumnBounds.bottom,
             paint = timeColumnSeparatorPaint
@@ -102,7 +94,6 @@ internal class TimeColumnDrawer<T>(
         }
 
         val timeTextWidth = checkNotNull(timeTextWidth)
-        val timeTextHeight = checkNotNull(timeTextHeight)
 
         val x = timeTextWidth + timeColumnPadding
         var y = topMargin + timeTextHeight / 2

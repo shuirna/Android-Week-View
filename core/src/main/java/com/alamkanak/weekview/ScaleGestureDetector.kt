@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 internal class ScaleGestureDetector(
     context: Context,
     private val viewState: WeekViewViewState<*>,
-    private val smoothScroller: SmoothScroller,
+    private val valueAnimator: ValueAnimator,
     private val onInvalidation: () -> Unit
 ) {
 
@@ -16,7 +16,7 @@ internal class ScaleGestureDetector(
 
         override fun onScaleBegin(
             detector: ScaleGestureDetector
-        ): Boolean = !smoothScroller.isRunning
+        ): Boolean = !valueAnimator.isRunning
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val hourHeight = viewState.hourHeight
@@ -33,10 +33,8 @@ internal class ScaleGestureDetector(
     private val detector = ScaleGestureDetector(context, listener)
 
     fun onTouchEvent(event: MotionEvent) {
-        if (smoothScroller.isRunning) {
-            return
+        if (!valueAnimator.isRunning) {
+            detector.onTouchEvent(event)
         }
-
-        detector.onTouchEvent(event)
     }
 }

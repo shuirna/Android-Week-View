@@ -1,32 +1,34 @@
 package com.alamkanak.weekview
 
-import android.animation.ValueAnimator
+import android.animation.ValueAnimator as AndroidValueAnimator
 import android.view.animation.DecelerateInterpolator
 
-internal class SmoothScroller {
+internal class ValueAnimator {
 
-    private var valueAnimator: ValueAnimator? = null
+    private var valueAnimator: AndroidValueAnimator? = null
 
     val isRunning: Boolean
         get() = valueAnimator?.isStarted ?: false
 
-    fun scroll(
+    fun animate(
         fromValue: Int,
         toValue: Int,
         duration: Long = 300,
         onUpdate: (Int) -> Unit
     ) {
-        stop()
+        valueAnimator?.cancel()
 
-        valueAnimator = ValueAnimator.ofInt(fromValue, toValue).apply {
-            this.duration = duration
+        valueAnimator = AndroidValueAnimator.ofInt(fromValue, toValue).apply {
+            setDuration(duration)
             interpolator = DecelerateInterpolator()
+
             addUpdateListener {
                 val value = it.animatedValue as Int
                 onUpdate(value)
             }
+
+            start()
         }
-        valueAnimator?.start()
     }
 
     fun stop() {

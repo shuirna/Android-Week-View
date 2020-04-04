@@ -157,7 +157,7 @@ internal data class WeekViewViewState<T>(
     // var drawableWidthPerDay: Int = 0,
 
     var currentAllDayEventHeight: Int = 0,
-    var timeTextWidth: Int? = null, // TODO Must be set at some point
+    var timeTextWidth: Int = 0,
 
     private var _headerTextHeight: Int? = null,
 
@@ -215,23 +215,23 @@ internal data class WeekViewViewState<T>(
     val timeColumnWidth: Int
         get() = _timeColumnBounds.width
 
-    private var _dateFormatter: (Calendar) -> String = { calendar ->
-        defaultTimeFormatter().format(calendar.time)
+    private var _dateFormatter: WeekViewDateFormatter = { calendar, numberOfVisibleDays ->
+        defaultDateFormatter(numberOfDays = numberOfVisibleDays).format(calendar.time)
     }
 
-    var dateFormatter: (Calendar) -> String
+    private var _timeFormatter: WeekViewTimeFormatter = { hour ->
+        val date = now().withTime(hour = hour, minutes = 0)
+        defaultTimeFormatter().format(date.time)
+    }
+
+    var dateFormatter: WeekViewDateFormatter
         get() = _dateFormatter
         set(value) {
             _dateFormatter = value
             onDateFormatterUpdated()
         }
 
-    private var _timeFormatter: (Int) -> String = { hour ->
-        val date = now().withTime(hour = hour, minutes = 0)
-        defaultTimeFormatter().format(date.time)
-    }
-
-    var timeFormatter: (Int) -> String
+    var timeFormatter: WeekViewTimeFormatter
         get() = _timeFormatter
         set(value) {
             _timeFormatter = value
@@ -241,8 +241,7 @@ internal data class WeekViewViewState<T>(
     var numberOfVisibleDays: Int
         get() = _numberOfVisibleDays
         set(value) {
-            // todo not really needed: onSizeChanged(bounds = bounds)
-            // Scroll to first visible day after changing the number of visible days
+            // Scroll to first currently visible day after changing the number of visible days
             _numberOfVisibleDays = value
             goToDate = firstVisibleDate
         }
@@ -257,8 +256,27 @@ internal data class WeekViewViewState<T>(
 
     init {
         // timeTextHeight = timeTextPaint.textHeight
-        timeTextWidth = calculateTimeColumnTextWidth()
+        val hourRange = 0..hoursPerDay
+        val timeLabels = hourRange.map { timeFormatter(it) }
+
+        for (hour in hourRange) {
+            cache.timeLabels[hour] = timeLabels[hour]
+        }
+
+        // timeLabels.forEach { (hour, label) -> cache.timeLabels[hour] = label }
+        val textWidths = timeLabels.map { timeTextPaint.measureText(it).roundToInt() }
+        timeTextWidth = textWidths.max() ?: 0
+
+//        cacheTimeLabels2()
+//        timeTextWidth = calculateTimeColumnTextWidth()
     }
+
+//    fun cacheTimeLabels2() {
+//        val cache = cache.timeLabels
+//        for (hour in startHour until hoursPerDay step timeColumnHoursInterval) {
+//            cache.put(hour, timeFormatter(hour + minHour))
+//        }
+//    }
 
     private fun calculateTimeColumnTextWidth() = (0..hoursPerDay)
         .map { timeFormatter(it) }
@@ -266,15 +284,12 @@ internal data class WeekViewViewState<T>(
         .max() ?: 0
 
     @IgnoredOnParcel
-    val headerTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    val headerTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         color = headerRowTextColor
         textAlign = Paint.Align.CENTER
         textSize = headerRowTextSize.toFloat()
         typeface = this@WeekViewViewState.typeface.toBold()
     }
-        // .also {
-        //   headerTextHeight = (it.descent() - it.ascent()).roundToInt()
-        // }
 
     var headerTextHeight: Int
         get() {
@@ -291,7 +306,7 @@ internal data class WeekViewViewState<T>(
     }
 
     @IgnoredOnParcel
-    val todayHeaderTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    val todayHeaderTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         color = todayHeaderTextColor
         textAlign = Paint.Align.CENTER
         textSize = headerRowTextSize.toFloat()
@@ -330,11 +345,6 @@ internal data class WeekViewViewState<T>(
     fun getXOriginForDate(date: Calendar): Int {
         return date.daysFromToday * widthPerDay * -1
     }
-
-//    fun refreshHeaderRowHeight(hasEventsInHeader: Boolean) {
-//        this.hasEventsInHeader = hasEventsInHeader
-//        refreshHeaderHeight()
-//    }
 
     // TODO Deprecate?
     fun refreshHeaderHeight() {
@@ -470,12 +480,10 @@ internal data class WeekViewViewState<T>(
     val timeRange: IntRange
         get() = minHour..maxHour
 
-    @Deprecated("")
     val totalDayHeight: Int
-        get() = (hourHeight * hoursPerDay) + headerBounds.height
+        get() = headerBounds.height + (hourHeight * hoursPerDay)
 
     private fun onDateFormatterUpdated() {
-        // Calculate header bounds
         val headerHeight = calculateHeaderHeight()
         _headerBounds = bounds.copy(
             bottom = bounds.top + headerHeight
@@ -495,7 +503,6 @@ internal data class WeekViewViewState<T>(
 
         // TODO Calculate time column text height when paint is updated
 
-        // Time column
         val textWidth = calculateTimeColumnTextWidth()
         val columnWidth = textWidth + timeColumnPadding * 2
         _timeColumnBounds = bounds.copy(
@@ -504,13 +511,12 @@ internal data class WeekViewViewState<T>(
         )
 
         _headerBounds = _headerBounds.copy(
-            left = _timeColumnBounds.width // TODO + 1
+            left = _timeColumnBounds.width
         )
 
-        // Calendar area
         _calendarAreaBounds = bounds.copy(
-            left = columnWidth + 1,
-            top = headerHeight + 1
+            left = columnWidth,
+            top = headerHeight
         )
     }
 
@@ -525,7 +531,6 @@ internal data class WeekViewViewState<T>(
         val didZoom = newHourHeight != null
 
         if (isNotFillingEntireHeight || didZoom) {
-            // val newHourHeight = checkNotNull(newHourHeight)
             newHourHeight = max(checkNotNull(newHourHeight), effectiveMinHourHeight)
             newHourHeight = min(checkNotNull(newHourHeight), maxHourHeight)
 
@@ -562,7 +567,7 @@ internal data class WeekViewViewState<T>(
         val textWidth = calculateTimeColumnTextWidth()
         val columnWidth = textWidth + timeColumnPadding * 2
         _timeColumnBounds = bounds.copy(
-            top = headerHeight, // todo: +1 the right approach?
+            top = headerHeight,
             right = bounds.left + columnWidth
         )
 
@@ -585,6 +590,8 @@ internal data class WeekViewViewState<T>(
         val newHeight = bounds.height
         this._bounds = bounds
 
+        clearCaches()
+
         updateHeaderBounds()
         updateTimeColumnBounds()
         updateCalendarAreaBounds()
@@ -605,7 +612,8 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun updateMinHourHeight() {
-        val dynamicHourHeight = (bounds.height - getTotalHeaderHeight()) / hoursPerDay
+        // val x = headerBounds.height + headerRowPadding * 2
+        val dynamicHourHeight = (calendarAreaBounds.height) / hoursPerDay
         effectiveMinHourHeight = max(minHourHeight, dynamicHourHeight)
     }
 
@@ -613,8 +621,8 @@ internal data class WeekViewViewState<T>(
         val originX = currentOrigin.x
 
         val daysFromOrigin = ceil(originX / widthPerDay.toFloat()).roundToInt() * (-1)
-        val timeColumnWidth = _timeColumnBounds.width + timeColumnSeparatorStrokeWidth.scaleBy(0.5f) // TODO Why scale?
-        val startPixel = timeColumnWidth + originX + widthPerDay * daysFromOrigin
+        val timeColumnWidth = _timeColumnBounds.width + timeColumnSeparatorStrokeWidth
+        val startPixel = timeColumnWidth + originX + (widthPerDay * daysFromOrigin)
 
         val start = daysFromOrigin + 1
         val end = start + numberOfVisibleDays
@@ -693,24 +701,19 @@ internal data class WeekViewViewState<T>(
         currentOrigin.y = min(desiredOffset, verticalOffset) * -1
     }
 
-    @Deprecated("")
-    fun getTotalHeaderHeight(): Int {
-        return headerBounds.height + headerRowPadding * 2
-    }
-
     fun invalidate() {
         hasBeenInvalidated = true
     }
 
-    fun clearCaches(dateTimeInterpreter: DateTimeInterpreter) {
+    fun clearCaches() {
         cache.clear()
-        cacheTimeLabels(dateTimeInterpreter)
+        cacheTimeLabels()
     }
 
-    fun cacheTimeLabels(dateTimeInterpreter: DateTimeInterpreter) {
+    private fun cacheTimeLabels() {
         val cache = cache.timeLabels
         for (hour in startHour until hoursPerDay step timeColumnHoursInterval) {
-            cache.put(hour, dateTimeInterpreter.interpretTime(hour + minHour))
+            cache.put(hour, timeFormatter(hour + minHour))
         }
     }
 

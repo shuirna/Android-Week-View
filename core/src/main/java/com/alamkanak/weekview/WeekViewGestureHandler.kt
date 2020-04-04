@@ -33,7 +33,7 @@ internal class WeekViewGestureHandler<T : Any>(
     private val onInvalidation: () -> Unit
 ) : GestureDetector.SimpleOnGestureListener() {
 
-    private val smoothScroller = SmoothScroller()
+    private val smoothScroller = ValueAnimator()
 
     private var currentScrollDirection = None
     private var currentFlingDirection = None
@@ -144,7 +144,7 @@ internal class WeekViewGestureHandler<T : Any>(
         val destinationOffset = viewState.getXOriginForDate(destinationDate)
         val adjustedDestinationOffset = min(max(viewState.minX, destinationOffset), viewState.maxX)
 
-        smoothScroller.scroll(
+        smoothScroller.animate(
             fromValue = viewState.currentOrigin.x,
             toValue = adjustedDestinationOffset,
             onUpdate = {
@@ -167,7 +167,7 @@ internal class WeekViewGestureHandler<T : Any>(
         val destinationOffset = currentOffset + (originalVelocityY * 0.18).roundToInt()
         val adjustedDestinationOffset = min(max(destinationOffset, minY), maxY)
 
-        smoothScroller.scroll(
+        smoothScroller.animate(
             fromValue = viewState.currentOrigin.y,
             toValue = adjustedDestinationOffset,
             onUpdate = {
@@ -223,7 +223,7 @@ internal class WeekViewGestureHandler<T : Any>(
             val currentOffset = viewState.currentOrigin.x
             val destinationOffset = adjustedDaysFromOrigin * dayWidth
 
-            smoothScroller.scroll(
+            smoothScroller.animate(
                 fromValue = currentOffset,
                 toValue = destinationOffset,
                 onUpdate = {

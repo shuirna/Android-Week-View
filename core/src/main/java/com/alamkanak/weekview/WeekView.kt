@@ -14,6 +14,9 @@ import java.util.Calendar
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+typealias WeekViewDateFormatter = (date: Calendar, numberOfVisibleDays: Int) -> String
+typealias WeekViewTimeFormatter = (hour: Int) -> String
+
 class WeekView<T : Any> @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -48,47 +51,48 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private val eventsLoader: EventsLoader<T>
         get() = eventsLoaderWrapper.get()
 
-    private var _dateTimeInterpreter: DateTimeInterpreter =
-        DefaultDateTimeInterpreter(RealDateFormatProvider(context), numberOfVisibleDays)
-
-    @Deprecated("")
+    @Deprecated("Use dateFormatter and timeFormatter instead.")
     var dateTimeInterpreter: DateTimeInterpreter
-        get() = _dateTimeInterpreter
+        get() = object : DateTimeInterpreter {
+            override fun interpretDate(date: Calendar) = dateFormatter(date, numberOfVisibleDays)
+            override fun interpretTime(hour: Int): String = timeFormatter(hour)
+        }
         set(value) {
-            _dateTimeInterpreter = value
-            clearCaches()
+            setDateFormatter { date, _ -> value.interpretDate(date) }
+            setTimeFormatter(value::interpretTime)
         }
 
-    var dateFormatter: (Calendar) -> String
+    val dateFormatter: WeekViewDateFormatter
         get() = viewState.dateFormatter
-        set(value) { viewState.dateFormatter = value }
-        // TODO clearCaches()
 
-    var timeFormatter: (Int) -> String
+    fun setDateFormatter(formatter: WeekViewDateFormatter) {
+        viewState.dateFormatter = formatter
+    }
+
+    val timeFormatter: WeekViewTimeFormatter
         get() = viewState.timeFormatter
-        set(value) { viewState.timeFormatter = value }
-        // TODO clearCaches()
+
+    fun setTimeFormatter(formatter: WeekViewTimeFormatter) {
+        viewState.timeFormatter = formatter
+    }
 
     // Be careful when changing the order of the updaters, as the calculation of any updater might
     // depend on results of previous updaters
     private val updaters = listOf(
-        MultiLineDayLabelHeightUpdater(cache, dateTimeInterpreter),
+        MultiLineDayLabelHeightUpdater(),
         AllDayEventsUpdater(context, cache, eventChipCache),
         HeaderRowHeightUpdater(eventsCacheWrapper),
-        // TimeColumnUpdater(dateTimeInterpreter),
         SingleEventsUpdater(eventChipCache)
     )
 
     init {
-        // viewState.dateTimeInterpreter = dateTimeInterpreter
-
         if (context.isAccessibilityEnabled) {
             accessibilityTouchHelper = WeekViewAccessibilityTouchHelper(
-                this,
-                viewState,
-                gestureHandler,
-                eventChipCache,
-                touchHandler
+                view = this,
+                viewState = viewState,
+                gestureHandler = gestureHandler,
+                eventChipCache = eventChipCache,
+                touchHandler = touchHandler
             )
             ViewCompat.setAccessibilityDelegate(this, accessibilityTouchHelper)
         }
@@ -101,9 +105,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
         BackgroundGridDrawer(),
         SingleEventsDrawer(context, viewState, eventChipCache),
         NowLineDrawer(),
-        TimeColumnDrawer(viewState, dateTimeInterpreter),
+        TimeColumnDrawer(),
         HeaderRowDrawer(),
-        DayLabelDrawer(cache, dateTimeInterpreter),
+        DayLabelDrawer(),
         AllDayEventsDrawer(context, viewState, cache)
     )
 
@@ -184,9 +188,6 @@ class WeekView<T : Any> @JvmOverloads constructor(
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
         viewState.onSizeChanged(bounds = bounds)
-
-        // todo move this, have the clearing be initiated by viewstate somehow
-        clearCaches()
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -218,10 +219,6 @@ class WeekView<T : Any> @JvmOverloads constructor(
             onRangeChangeListener?.onRangeChanged(firstVisibleDate, lastVisibleDate)
         }
     }
-
-//    private fun calculateWidthPerDay() {
-//        // viewState.calculateWidthPerDay(dateTimeInterpreter)
-//    }
 
     override fun invalidate() {
         viewState.invalidate()
@@ -255,9 +252,8 @@ class WeekView<T : Any> @JvmOverloads constructor(
     var numberOfVisibleDays: Int
         get() = viewState.numberOfVisibleDays
         set(value) {
-            // dateTimeInterpreter.onSetNumberOfDays(value)
             viewState.numberOfVisibleDays = value
-            clearCaches()
+            viewState.clearCaches()
             invalidate()
         }
 
@@ -1102,7 +1098,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
      * @param date The date to show.
      */
     fun goToDate(date: Calendar) {
-        val adjustedDate = viewState.getDateWithinDateRange(date)
+        val adjustedDate = viewState.ensureDateRange(date)
         gestureHandler.stopScroll()
 
         val isWaitingToBeLaidOut = ViewCompat.isLaidOut(this).not()
@@ -1120,8 +1116,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         invalidate()
     }
 
-    // TODO
-    private fun WeekViewViewState<T>.getDateWithinDateRange(date: Calendar): Calendar {
+    private fun WeekViewViewState<T>.ensureDateRange(date: Calendar): Calendar {
         val minDate = minDate ?: date
         val maxDate = maxDate ?: date
 
@@ -1151,7 +1146,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
      * @param hour The hour to scroll to, in 24-hour format. Supported values are 0-24.
      *
      * @throws IllegalArgumentException Throws exception if the provided hour is smaller than
-     *                                   [minHour] or larger than [maxHour].
+     *                                    [minHour] or larger than [maxHour].
      */
     fun goToHour(hour: Int) {
         if (viewState.hasBeenInvalidated) {
@@ -1162,8 +1157,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
         if (hour !in viewState.timeRange) {
             throw IllegalArgumentException(
-                "The provided hour ($hour) is outside of the set time range " +
-                    "(${viewState.minHour} – ${viewState.maxHour})"
+                "Hour must be between ${viewState.minHour} - ${viewState.maxHour} (was $hour)"
             )
         }
 
@@ -1355,10 +1349,6 @@ class WeekView<T : Any> @JvmOverloads constructor(
                 block(firstVisibleDate, lastVisibleDate)
             }
         }
-    }
-
-    private fun clearCaches() {
-        viewState.clearCaches(dateTimeInterpreter)
     }
 
     override fun dispatchHoverEvent(

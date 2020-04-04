@@ -29,8 +29,6 @@ internal class HeaderRowHeightUpdater<T>(
 
     override fun update(viewState: WeekViewViewState<T>) {
         previousHorizontalOrigin = viewState.currentOrigin.x
-        // TODO viewState.timeColumnWidth = checkNotNull(viewState.timeTextWidth) + viewState.timeColumnPadding * 2
-
         viewState.hasEventsInHeader = eventsCache[viewState.dateRange].any { it.isAllDay }
         viewState.refreshHeaderHeight()
     }

@@ -2,13 +2,9 @@ package com.alamkanak.weekview
 
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.util.SparseArray
 import java.util.Calendar
 
-internal class MultiLineDayLabelHeightUpdater<T : Any>(
-    private val cache: WeekViewCache<T>,
-    private val dateTimeInterpreter: DateTimeInterpreter
-) : Updater<T> {
+internal class MultiLineDayLabelHeightUpdater<T : Any> : Updater<T> {
 
     private var previousHorizontalOrigin: Int? = null
 
@@ -20,7 +16,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
         val currentTimeColumnWidth = checkNotNull(viewState.timeTextWidth) + viewState.timeColumnPadding * 2
         val didTimeColumnChange = currentTimeColumnWidth != viewState.timeColumnWidth
         val didScrollHorizontally = previousHorizontalOrigin != viewState.currentOrigin.x
-        val isCacheIncomplete = viewState.numberOfVisibleDays != cache.allDayEventLayouts.size
+        val isCacheIncomplete = viewState.numberOfVisibleDays != viewState.cache.allDayEventLayouts.size
 
         return didTimeColumnChange || didScrollHorizontally || isCacheIncomplete
     }
@@ -34,7 +30,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
 
         for ((date, multiDayLabel) in multiDayLabels) {
             val key = date.toEpochDays()
-            cache.multiLineDayLabels.put(key, multiDayLabel)
+            viewState.cache.multiLineDayLabels.put(key, multiDayLabel)
         }
 
         val staticLayout = multiDayLabels
@@ -50,7 +46,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
         date: Calendar
     ): StaticLayout {
         val key = date.toEpochDays()
-        val dayLabel = cache.dateLabels.get(key) { provideAndCacheDayLabel(key, date) }
+        val dayLabel = viewState.getOrCreateDateLabel(key, date)
 
         val textPaint = if (date.isToday) {
             viewState.todayHeaderTextPaint
@@ -58,26 +54,14 @@ internal class MultiLineDayLabelHeightUpdater<T : Any>(
             viewState.headerTextPaint
         }
 
-        return buildStaticLayout(viewState, dayLabel, TextPaint(textPaint))
+        return dayLabel.buildStaticLayout(viewState, textPaint)
     }
 
-    private fun buildStaticLayout(
+    private fun String.buildStaticLayout(
         viewState: WeekViewViewState<T>,
-        dayLabel: String,
-        textPaint:
-        TextPaint
+        textPaint: TextPaint
     ): StaticLayout {
         val width = viewState.widthPerDay
-        return dayLabel.toTextLayout(textPaint, width)
-    }
-
-    private fun provideAndCacheDayLabel(key: Int, day: Calendar): String {
-        return dateTimeInterpreter.interpretDate(day).also {
-            cache.dateLabels.put(key, it)
-        }
-    }
-
-    private fun <E> SparseArray<E>.get(key: Int, providerIfEmpty: () -> E): E {
-        return get(key) ?: providerIfEmpty.invoke()
+        return toTextLayout(textPaint, width)
     }
 }
