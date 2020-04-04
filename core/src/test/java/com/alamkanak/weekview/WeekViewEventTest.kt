@@ -5,12 +5,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
 
 class WeekViewEventTest {
 
-    private val viewState = Mockito.mock(WeekViewViewState::class.java)
-    private val eventSplitter = WeekViewEventSplitter<Event>(viewState)
+    @Suppress("UNCHECKED_CAST")
+    private val viewState = mock(WeekViewViewState::class.java) as WeekViewViewState<Event>
+    private val eventSplitter = WeekViewEventSplitter(viewState)
 
     init {
         MockitoAnnotations.initMocks(this)

@@ -9,8 +9,9 @@ import org.mockito.MockitoAnnotations
 
 class WeekViewEventSplitterTest {
 
-    private val viewState = mock(WeekViewViewState::class.java)
-    private val underTest = WeekViewEventSplitter<Event>(viewState)
+    @Suppress("UNCHECKED_CAST")
+    private val viewState = mock(WeekViewViewState::class.java) as WeekViewViewState<Event>
+    private val underTest = WeekViewEventSplitter(viewState)
 
     init {
         MockitoAnnotations.initMocks(this)
