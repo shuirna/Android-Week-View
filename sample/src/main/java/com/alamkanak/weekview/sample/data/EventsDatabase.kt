@@ -1,15 +1,19 @@
 package com.alamkanak.weekview.sample.data
 
 import android.content.Context
+import android.graphics.Color
 import androidx.core.content.ContextCompat
 import com.alamkanak.weekview.WeekViewDisplayable
 import com.alamkanak.weekview.sample.R
 import com.alamkanak.weekview.sample.data.model.Event
+import com.alamkanak.weekview.sample.util.resolveAttribute
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-class EventsDatabase(context: Context) {
+class EventsDatabase(
+    private val context: Context
+) {
 
     private val color1 = ContextCompat.getColor(context, R.color.event_color_01)
     private val color2 = ContextCompat.getColor(context, R.color.event_color_02)
@@ -26,7 +30,9 @@ class EventsDatabase(context: Context) {
         val idOffset = year + 10L * month
         val events = mutableListOf<WeekViewDisplayable<Event>>()
 
-        events += newEvent(
+        val textColor = context.resolveAttribute(android.R.attr.colorBackground)
+
+        events += Event(
             id = idOffset + 1,
             year = year,
             month = month,
@@ -34,11 +40,12 @@ class EventsDatabase(context: Context) {
             hour = 16,
             minute = 0,
             duration = 90,
-            color = color1
+            textColor = textColor,
+            backgroundColor = color1
         )
 
         // Add multi-day event
-        events += newEvent(
+        events += Event(
             id = idOffset + 2,
             year = year,
             month = month,
@@ -46,10 +53,11 @@ class EventsDatabase(context: Context) {
             hour = 20,
             minute = 0,
             duration = 5 * 60,
-            color = color4
+            textColor = textColor,
+            backgroundColor = color4
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 3,
             year = year,
             month = month,
@@ -57,11 +65,12 @@ class EventsDatabase(context: Context) {
             hour = 9,
             minute = 30,
             duration = 60,
-            color = color4,
+            textColor = textColor,
+            backgroundColor = color4,
             isCanceled = true
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 3,
             year = year,
             month = month,
@@ -69,10 +78,11 @@ class EventsDatabase(context: Context) {
             hour = 9,
             minute = 30,
             duration = 60,
-            color = color2
+            textColor = textColor,
+            backgroundColor = color2
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 4,
             year = year,
             month = month,
@@ -80,10 +90,11 @@ class EventsDatabase(context: Context) {
             hour = 10,
             minute = 30,
             duration = 45,
-            color = color3
+            textColor = textColor,
+            backgroundColor = color3
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 5,
             year = year,
             month = month,
@@ -91,10 +102,11 @@ class EventsDatabase(context: Context) {
             hour = 12,
             minute = 30,
             duration = 2 * 60,
-            color = color2
+            textColor = textColor,
+            backgroundColor = color2
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 6,
             year = year,
             month = month,
@@ -102,10 +114,11 @@ class EventsDatabase(context: Context) {
             hour = 11,
             minute = 0,
             duration = 4 * 60,
-            color = color3
+            textColor = textColor,
+            backgroundColor = color3
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 7,
             year = year,
             month = month,
@@ -113,11 +126,12 @@ class EventsDatabase(context: Context) {
             hour = 3,
             minute = 0,
             duration = 3 * 60,
-            color = color4,
+            textColor = textColor,
+            backgroundColor = color4,
             isCanceled = true
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 8,
             year = year,
             month = month,
@@ -125,10 +139,11 @@ class EventsDatabase(context: Context) {
             hour = 9,
             minute = 0,
             duration = 3 * 60,
-            color = color1
+            textColor = textColor,
+            backgroundColor = color1
         )
 
-        events += newEvent(
+        events += Event(
             id = idOffset + 9,
             year = year,
             month = month,
@@ -136,11 +151,12 @@ class EventsDatabase(context: Context) {
             hour = 15,
             minute = 0,
             duration = 3 * 60,
-            color = color2
+            textColor = textColor,
+            backgroundColor = color2
         )
 
         // All-day event
-        events += newEvent(
+        events += Event(
             id = idOffset + 10,
             year = year,
             month = month,
@@ -149,11 +165,12 @@ class EventsDatabase(context: Context) {
             minute = 0,
             duration = 24 * 60,
             isAllDay = true,
-            color = color4
+            textColor = textColor,
+            backgroundColor = color4
         )
 
         // All-day event
-        events += newEvent(
+        events += Event(
             id = idOffset + 11,
             year = year,
             month = month,
@@ -162,11 +179,12 @@ class EventsDatabase(context: Context) {
             minute = 0,
             duration = 24 * 60,
             isAllDay = true,
-            color = color2
+            textColor = textColor,
+            backgroundColor = color2
         )
 
         // All-day event until 00:00 next day
-        events += newEvent(
+        events += Event(
             id = idOffset + 12,
             year = year,
             month = month,
@@ -175,13 +193,15 @@ class EventsDatabase(context: Context) {
             minute = 0,
             duration = 10 * 60,
             isAllDay = true,
-            color = color4
+            textColor = textColor,
+            backgroundColor = color4
         )
 
         return events
     }
 
-    private fun newEvent(
+    @Suppress("FunctionName")
+    private fun Event(
         id: Long,
         year: Int,
         month: Int,
@@ -189,7 +209,8 @@ class EventsDatabase(context: Context) {
         hour: Int,
         minute: Int,
         duration: Int,
-        color: Int,
+        textColor: Int,
+        backgroundColor: Int,
         isAllDay: Boolean = false,
         isCanceled: Boolean = false
     ): Event {
@@ -205,8 +226,22 @@ class EventsDatabase(context: Context) {
         val endTime = startTime.clone() as Calendar
         endTime.add(Calendar.MINUTE, duration)
 
+        // Invert colors if event is canceled
+        val realTextColor = if (isCanceled) backgroundColor else textColor
+        val realBackgroundColor = if (isCanceled) Color.TRANSPARENT else backgroundColor
+
         val title = buildEventTitle(startTime)
-        return Event(id, title, startTime, endTime, "Location $id", color, isAllDay, isCanceled)
+        return Event(
+            id,
+            title,
+            startTime,
+            endTime,
+            "Location $id",
+            realTextColor,
+            realBackgroundColor,
+            isAllDay,
+            isCanceled
+        )
     }
 
     private fun buildEventTitle(time: Calendar): String {

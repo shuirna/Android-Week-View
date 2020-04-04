@@ -9,6 +9,7 @@ import com.alamkanak.weekview.sample.data.EventsDatabase
 import com.alamkanak.weekview.sample.data.model.Event
 import com.alamkanak.weekview.sample.util.lazyView
 import com.alamkanak.weekview.sample.util.observe
+import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
 import com.alamkanak.weekview.sample.util.toCalendar
@@ -42,7 +43,8 @@ class BasicActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_basic)
 
-        toolbar.setupWithWeekView(weekView)
+        requestFullscreenLayout()
+        toolbar.setupWithWeekView(weekView, this)
 
         viewModel.events.observe(this) { events ->
             weekView.submit(events)

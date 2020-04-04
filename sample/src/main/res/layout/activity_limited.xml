@@ -14,9 +14,8 @@
         android:layout_height="match_parent"
         app:columnGap="1dp"
         app:eventCornerRadius="4dp"
-        app:eventTextColor="@android:color/white"
-        app:headerRowBottomLineColor="@color/light_gray"
-        app:headerRowBottomLineWidth="1dp"
+        app:headerRowBottomShadowColor="?android:shadowColor"
+        app:headerRowBottomShadowRadius="4dp"
         app:headerRowPadding="12dp"
         app:hourHeight="60dp"
         app:maxHour="20"
@@ -28,17 +27,16 @@
         app:numberOfVisibleDays="3"
         app:overlappingEventGap="1dp"
         app:showCurrentTimeFirst="true"
-        app:showHeaderRowBottomLine="true"
         app:showNowLine="true"
         app:showNowLineDot="true"
         app:showTimeColumnSeparator="true"
         app:singleDayHorizontalMargin="8dp"
         app:timeColumnBackgroundColor="#ffffffff"
         app:timeColumnPadding="8dp"
-        app:timeColumnSeparatorColor="@color/light_gray"
+        app:timeColumnSeparatorColor="?attr/cardBackgroundColor"
         app:timeColumnSeparatorStrokeWidth="1dp"
-        app:timeColumnTextColor="@color/dark_gray"
+        app:timeColumnTextColor="?colorOnSurface"
         app:timeColumnTextSize="12sp"
-        app:todayHeaderTextColor="@color/light_blue" />
+        app:todayHeaderTextColor="?colorAccent" />
 
 </LinearLayout>

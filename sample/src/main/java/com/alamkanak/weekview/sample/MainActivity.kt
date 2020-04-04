@@ -4,7 +4,11 @@ import android.content.Intent
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import com.alamkanak.weekview.sample.util.EqualSpacingItemDecoration
+import com.alamkanak.weekview.sample.util.requestFullscreenLayout
+import com.alamkanak.weekview.sample.util.setup
+import dev.chrisbanes.insetter.doOnApplyWindowInsets
 import kotlin.math.roundToInt
 import kotlinx.android.synthetic.main.activity_main.recyclerView
 import kotlinx.android.synthetic.main.view_toolbar.appBarLayout
@@ -15,7 +19,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+
+        requestFullscreenLayout()
+        toolbar.setup(this)
 
         recyclerView.adapter = SamplesAdapter(SAMPLES, this::onItemClick)
 
@@ -27,6 +33,12 @@ class MainActivity : AppCompatActivity() {
 
         val spacing = resources.getDimension(R.dimen.default_space).roundToInt()
         recyclerView.addItemDecoration(EqualSpacingItemDecoration(spacing))
+
+        recyclerView.doOnApplyWindowInsets { view, insets, initialState ->
+            view.updatePadding(
+                bottom = initialState.paddings.bottom + insets.systemWindowInsetBottom
+            )
+        }
     }
 
     private fun onItemClick(sample: Sample) {

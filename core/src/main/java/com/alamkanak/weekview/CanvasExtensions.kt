@@ -112,5 +112,3 @@ internal fun Paint.getTextBounds(text: String): Rect {
 }
 
 internal fun Int.scaleBy(factor: Float): Int = (this * factor).roundToInt()
-
-internal fun Int.divideBy(divisor: Int): Int = (this / divisor.toFloat()).roundToInt()

@@ -12,6 +12,7 @@ import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.sample.data.EventsDatabase
 import com.alamkanak.weekview.sample.data.model.Event
 import com.alamkanak.weekview.sample.util.lazyView
+import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
 import java.text.SimpleDateFormat
@@ -29,7 +30,8 @@ class LimitedActivity : AppCompatActivity(), OnEventClickListener<Event>,
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_limited)
 
-        toolbar.setupWithWeekView(weekView)
+        requestFullscreenLayout()
+        toolbar.setupWithWeekView(weekView, this)
 
         weekView.onEventClickListener = this
         weekView.onMonthChangeListener = this

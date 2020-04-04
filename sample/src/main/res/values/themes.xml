@@ -1,0 +1,25 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimaryDark">@color/white</item>
+        <item name="colorAccent">@color/light_blue</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="android:shadowColor">@color/gray_400</item>
+        <item name="android:textColorPrimary">@color/gray_900</item>
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="actionMenuTextColor">@color/black</item>
+        <item name="cardBackgroundColor">@color/gray_200</item>
+        <item name="colorControlActivated">@color/light_blue</item>
+        <item name="colorOnSurface">@color/gray_700</item>
+        <item name="tint">@color/gray_900</item>
+
+        <item name="popupTheme">@style/ThemeOverlay.MaterialComponents.Light</item>
+
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">@android:color/transparent</item>
+    </style>
+
+</resources>

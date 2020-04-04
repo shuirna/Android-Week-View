@@ -3,9 +3,13 @@ package com.alamkanak.weekview.sample.util
 
 import android.app.Activity
 import android.view.MenuItem
+import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.get
+import androidx.core.view.updateLayoutParams
 import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.sample.R
+import dev.chrisbanes.insetter.doOnApplyWindowInsets
 
 private enum class WeekViewType(val value: Int) {
     DayView(1),
@@ -19,9 +23,23 @@ private enum class WeekViewType(val value: Int) {
     }
 }
 
-fun Toolbar.setupWithWeekView(weekView: WeekView<*>) {
-    val activity = context as Activity
+fun Toolbar.setup(activity: Activity) {
     title = activity.label
+
+    if (!activity.isTaskRoot) {
+        setNavigationIcon(R.drawable.ic_arrow_back)
+        setNavigationOnClickListener { activity.onBackPressed() }
+    }
+
+    doOnApplyWindowInsets { view, insets, initialState ->
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = initialState.margins.top + insets.systemWindowInsetTop
+        }
+    }
+}
+
+fun Toolbar.setupWithWeekView(weekView: WeekView<*>, activity: Activity) {
+    setup(activity)
 
     var currentViewType = WeekViewType.create(weekView.numberOfVisibleDays)
 
@@ -42,12 +60,6 @@ fun Toolbar.setupWithWeekView(weekView: WeekView<*>) {
                 true
             }
         }
-    }
-
-    val isRootActivity = activity.isTaskRoot
-    if (!isRootActivity) {
-        setNavigationIcon(R.drawable.ic_arrow_back)
-        setNavigationOnClickListener { activity.onBackPressed() }
     }
 }
 

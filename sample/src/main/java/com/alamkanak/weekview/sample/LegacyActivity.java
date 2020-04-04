@@ -14,9 +14,10 @@ import com.alamkanak.weekview.OnEventLongClickListener;
 import com.alamkanak.weekview.OnMonthChangeListener;
 import com.alamkanak.weekview.WeekView;
 import com.alamkanak.weekview.WeekViewDisplayable;
-import com.alamkanak.weekview.sample.data.model.Event;
 import com.alamkanak.weekview.sample.data.EventsDatabase;
+import com.alamkanak.weekview.sample.data.model.Event;
 import com.alamkanak.weekview.sample.util.ToolbarUtils;
+import com.alamkanak.weekview.sample.util.UiUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +41,9 @@ public class LegacyActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         WeekView<Event> weekView = findViewById(R.id.weekView);
-        ToolbarUtils.setupWithWeekView(toolbar, weekView);
+
+        UiUtils.requestFullscreenLayout(this);
+        ToolbarUtils.setupWithWeekView(toolbar, weekView, this);
 
         database = new EventsDatabase(this);
 

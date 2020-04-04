@@ -9,6 +9,7 @@ import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.sample.data.EventsApi
 import com.alamkanak.weekview.sample.data.model.ApiEvent
 import com.alamkanak.weekview.sample.util.lazyView
+import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
 import java.text.SimpleDateFormat
@@ -59,7 +60,8 @@ class AsyncActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_basic)
 
-        toolbar.setupWithWeekView(weekView)
+        requestFullscreenLayout()
+        toolbar.setupWithWeekView(weekView, this)
 
         viewModel.viewState.observe(this, Observer { viewState ->
             if (viewState.isLoading) {

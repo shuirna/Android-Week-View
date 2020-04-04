@@ -1,6 +1,5 @@
 package com.alamkanak.weekview.sample.data.model
 
-import android.graphics.Color
 import com.alamkanak.weekview.WeekViewDisplayable
 import com.alamkanak.weekview.WeekViewEvent
 import com.alamkanak.weekview.sample.R
@@ -12,14 +11,13 @@ class Event(
     private val startTime: Calendar,
     private val endTime: Calendar,
     private val location: String,
-    private val color: Int,
+    private val textColor: Int,
+    private val backgroundColor: Int,
     private val isAllDay: Boolean,
     private val isCanceled: Boolean
 ) : WeekViewDisplayable<Event> {
 
     override fun toWeekViewEvent(): WeekViewEvent<Event> {
-        val backgroundColor = if (!isCanceled) color else Color.WHITE
-        val textColor = if (!isCanceled) Color.WHITE else color
         val borderWidthResId = if (!isCanceled) R.dimen.no_border_width else R.dimen.border_width
 
         val style = WeekViewEvent.Style.Builder()
@@ -27,7 +25,7 @@ class Event(
             .setBackgroundColor(backgroundColor)
             .setTextStrikeThrough(isCanceled)
             .setBorderWidthResource(borderWidthResId)
-            .setBorderColor(color)
+            .setBorderColor(if (isCanceled) textColor else backgroundColor)
             .build()
 
         return WeekViewEvent.Builder<Event>(this)

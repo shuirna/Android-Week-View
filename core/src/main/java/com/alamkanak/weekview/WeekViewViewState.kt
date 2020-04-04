@@ -644,9 +644,7 @@ internal data class WeekViewViewState<T>(
         dateRangeWithStartPixels += dateRange.zip(startPixels)
     }
 
-    fun computeDifferenceWithFirstDayOfWeek(
-        date: Calendar
-    ): Int {
+    fun computeDifferenceWithFirstDayOfWeek(date: Calendar): Int {
         val firstDayOfWeek = firstDayOfWeek
         return if (firstDayOfWeek == Calendar.MONDAY && date.dayOfWeek == Calendar.SUNDAY) {
             // Special case, because Calendar.MONDAY has constant value 2 and Calendar.SUNDAY has

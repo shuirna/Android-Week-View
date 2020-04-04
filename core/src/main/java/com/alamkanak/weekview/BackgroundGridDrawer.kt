@@ -88,48 +88,9 @@ internal class BackgroundGridDrawer<T> : Drawer<T> {
                     top.toFloat()
                 )
             } else {
-                listOf()
+                emptyList()
             }
         }
-
-//        hoursSteps.flatMap { hour ->
-//            val heightOfHour = (viewState.hourHeight * hour)
-//            val top = headerHeight + viewState.currentOrigin.y + heightOfHour
-//
-//            val widthPerDay = viewState.widthPerDay
-//            val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
-//
-//            val isNotHiddenByHeader = top > headerHeight - separatorWidth
-//            val isWithinVisibleRange = top < viewState.bounds.height
-//            val isVisibleHorizontally = startPixel + widthPerDay - actualStartPixel > 0
-//
-//            listOf(
-//                actualStartPixel,
-//                top,
-//                startPixel + widthPerDay,
-//                top
-//            )
-//        }
-
-//        for (hour in hourStep until viewState.hoursPerDay step hourStep) {
-//            val heightOfHour = (viewState.hourHeight * hour)
-//            val top = headerHeight + viewState.currentOrigin.y + heightOfHour
-//
-//            val widthPerDay = viewState.widthPerDay
-//            val separatorWidth = viewState.hourSeparatorPaint.strokeWidth
-//
-//            val isNotHiddenByHeader = top > headerHeight - separatorWidth
-//            val isWithinVisibleRange = top < viewState.bounds.height
-//            val isVisibleHorizontally = startPixel + widthPerDay - actualStartPixel > 0
-//
-//            if (isNotHiddenByHeader && isWithinVisibleRange && isVisibleHorizontally) {
-//                hourLines[lineIndex * 4] = actualStartPixel
-//                hourLines[lineIndex * 4 + 1] = top
-//                hourLines[lineIndex * 4 + 2] = (startPixel + widthPerDay)
-//                hourLines[lineIndex * 4 + 3] = top
-//                lineIndex++
-//            }
-//        }
 
         drawLines(hourLines.toFloatArray(), viewState.hourSeparatorPaint)
     }

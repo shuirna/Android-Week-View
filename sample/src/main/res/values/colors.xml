@@ -9,8 +9,11 @@
     <color name="black">#000000</color>
 
     <color name="light_blue">#2789E4</color>
+    <color name="dark_blue">#2D9FD6</color>
 
-    <color name="light_gray">#EFEFEF</color>
-    <color name="medium_gray">#CCCCCC</color>
-    <color name="dark_gray">#8F000000</color>
+    <color name="gray_200">#EFEFEF</color>
+    <color name="gray_400">#CCCCCC</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#1F2024</color>
+    <color name="gray_900">#2C2E30</color>
 </resources>

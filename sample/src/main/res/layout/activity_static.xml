@@ -20,7 +20,8 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_chevron_left_black_24dp" />
+            android:src="@drawable/ic_chevron_left"
+            android:tint="?colorOnSurface" />
 
         <TextView
             android:id="@+id/dateRangeTextView"
@@ -41,7 +42,8 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_chevron_right_black_24dp" />
+            android:src="@drawable/ic_chevron_right"
+            android:tint="?colorOnSurface" />
 
     </LinearLayout>
 
@@ -50,32 +52,39 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:columnGap="1dp"
+        app:dayBackgroundColor="?android:colorBackground"
+        app:daySeparatorColor="?attr/cardBackgroundColor"
         app:eventCornerRadius="4dp"
-        app:eventTextColor="@android:color/white"
         app:firstDayOfWeek="monday"
-        app:headerRowBottomLineColor="@color/light_gray"
-        app:headerRowBottomLineWidth="1dp"
+        app:headerRowBackgroundColor="?colorPrimary"
+        app:headerRowBottomShadowColor="?android:shadowColor"
+        app:headerRowBottomShadowRadius="4dp"
         app:headerRowPadding="12dp"
+        app:headerRowTextColor="?colorOnSurface"
         app:horizontalScrollingEnabled="false"
         app:hourHeight="60dp"
+        app:hourSeparatorColor="?attr/cardBackgroundColor"
         app:nowLineColor="@color/light_blue"
         app:nowLineDotColor="@color/light_blue"
         app:nowLineDotRadius="5dp"
         app:nowLineStrokeWidth="1dp"
         app:numberOfVisibleDays="7"
         app:overlappingEventGap="1dp"
+        app:showDaySeparator="true"
         app:showFirstDayOfWeekFirst="true"
-        app:showHeaderRowBottomLine="true"
+        app:showHeaderRowBottomShadow="true"
+        app:showHourSeparator="true"
         app:showNowLine="true"
         app:showNowLineDot="true"
         app:showTimeColumnSeparator="true"
         app:singleDayHorizontalMargin="8dp"
-        app:timeColumnBackgroundColor="#ffffffff"
+        app:timeColumnBackgroundColor="?android:colorBackground"
         app:timeColumnPadding="8dp"
-        app:timeColumnSeparatorColor="@color/light_gray"
+        app:timeColumnSeparatorColor="?attr/cardBackgroundColor"
         app:timeColumnSeparatorStrokeWidth="1dp"
-        app:timeColumnTextColor="@color/dark_gray"
+        app:timeColumnTextColor="?colorOnSurface"
         app:timeColumnTextSize="12sp"
-        app:todayHeaderTextColor="@color/light_blue" />
+        app:todayBackgroundColor="?android:colorBackground"
+        app:todayHeaderTextColor="?colorAccent" />
 
 </LinearLayout>

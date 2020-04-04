@@ -6,6 +6,7 @@ import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.sample.data.EventsDatabase
 import com.alamkanak.weekview.sample.data.model.Event
 import com.alamkanak.weekview.sample.util.lazyView
+import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
 import java.text.SimpleDateFormat
@@ -21,7 +22,8 @@ class CustomFontActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_custom_font)
 
-        toolbar.setupWithWeekView(weekView)
+        requestFullscreenLayout()
+        toolbar.setupWithWeekView(weekView, this)
 
         weekView.setOnMonthChangeListener(this::onMonthChange)
         weekView.setOnEventClickListener { data, _ -> onEventClick(data) }

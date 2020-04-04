@@ -1,7 +1,6 @@
 package com.alamkanak.weekview
 
 import android.os.Build.VERSION.SDK_INT
-import android.os.Build.VERSION_CODES.M
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -13,7 +12,7 @@ fun CharSequence.toTextLayout(
     spacingMultiplier: Float = 1f,
     spacingExtra: Float = 0f,
     includePad: Boolean = false
-) = if (SDK_INT >= M) {
+) = if (SDK_INT >= 23) {
     StaticLayout.Builder
         .obtain(this, 0, this.length, textPaint, width)
         .setAlignment(alignment)
