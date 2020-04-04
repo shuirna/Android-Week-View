@@ -1,7 +1,6 @@
 package com.alamkanak.weekview
 
 import android.graphics.Canvas
-import android.graphics.Paint
 import com.alamkanak.weekview.Constants.MINUTES_PER_HOUR
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -43,18 +42,17 @@ internal class NowLineDrawer<T>() : Drawer<T> {
         canvas.drawLine(startX, verticalOffset, endX, verticalOffset, viewState.nowLinePaint)
 
         if (viewState.showNowLineDot) {
-            canvas.drawDot(viewState.nowDotPaint, startPixel, verticalOffset)
+            canvas.drawDot(viewState, startPixel, verticalOffset)
         }
     }
 
     private fun Canvas.drawDot(
-        paint: Paint,
+        viewState: WeekViewViewState<T>,
         startPixel: Int,
         lineStartY: Int
     ) {
-        // We use a margin to prevent the dot from sticking on the left side of the screen
-        val dotRadius = paint.strokeWidth.roundToInt()
-        val x = startPixel + 32
-        drawCircle(x, lineStartY, dotRadius, paint)
+        val dotRadius = viewState.nowDotPaint.strokeWidth.roundToInt()
+        val actualStartPixel = max(startPixel, viewState.timeColumnWidth)
+        drawCircle(actualStartPixel, lineStartY, dotRadius, viewState.nowDotPaint)
     }
 }

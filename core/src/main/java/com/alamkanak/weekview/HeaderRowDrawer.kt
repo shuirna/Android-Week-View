@@ -1,29 +1,36 @@
 package com.alamkanak.weekview
 
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Rect
 import kotlin.math.roundToInt
 
-internal class HeaderRowDrawer<T>() : Drawer<T> {
+internal class HeaderRowDrawer<T> : Drawer<T> {
 
     override fun draw(
         viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) = with(viewState) {
-        canvas.drawRect(headerBounds, headerBackgroundPaint)
+        val backgroundPaint = when {
+            viewState.showHeaderRowBottomShadow -> {
+                headerBackgroundPaint.withShadow(
+                    radius = viewState.headerRowBottomShadowRadius,
+                    color = viewState.headerRowBottomShadowColor
+                )
+            }
+            else -> headerBackgroundPaint
+        }
+
+        val backgroundBounds = headerBounds.copy(left = 0)
+        canvas.drawRect(backgroundBounds, backgroundPaint)
 
         if (showWeekNumber) {
             canvas.drawWeekNumber(viewState = this)
         }
 
         if (showHeaderRowBottomLine) {
-            // val width = bounds.width
-            // val headerHeight = headerBounds.height
-            // val top = headerHeight - headerRowBottomLineWidth
-            // canvas.drawLine(0, top, width, top, headerRowBottomLinePaint)
-
             val lineBounds = headerBounds.copy(
-                left = 0, // TODO
+                left = 0,
                 top = headerBounds.bottom - headerRowBottomLineWidth
             )
             canvas.drawRect(lineBounds, headerRowBottomLinePaint)
@@ -56,5 +63,11 @@ internal class HeaderRowDrawer<T>() : Drawer<T> {
         drawRoundRect(backgroundRect, radius, radius, backgroundPaint)
 
         drawText(weekNumber, bounds.centerX(), bounds.centerY() + textOffset, paint)
+    }
+
+    private fun Paint.withShadow(radius: Int, color: Int): Paint {
+        return Paint(this).apply {
+            setShadowLayer(radius.toFloat(), 0f, 0f, color)
+        }
     }
 }

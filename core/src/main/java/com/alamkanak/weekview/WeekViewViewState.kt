@@ -29,6 +29,11 @@ internal data class WeekViewViewState<T>(
     var headerRowBottomLineColor: Int = 0,
     var headerRowBottomLineWidth: Int = 0,
 
+    // Header bottom shadow
+    var showHeaderRowBottomShadow: Boolean = false,
+    var headerRowBottomShadowColor: Int = 0,
+    var headerRowBottomShadowRadius: Int = 0,
+
     // Week number
     var showWeekNumber: Boolean = false,
     var weekNumberTextColor: Int = 0,

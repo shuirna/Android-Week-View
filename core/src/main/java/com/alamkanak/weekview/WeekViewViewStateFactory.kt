@@ -23,9 +23,16 @@ internal fun <T> WeekViewViewState(
         restoreNumberOfVisibleDays = a.getBoolean(R.styleable.WeekView_restoreNumberOfVisibleDays, true),
         showFirstDayOfWeekFirst = a.getBoolean(R.styleable.WeekView_showFirstDayOfWeekFirst, false),
         showCurrentTimeFirst = a.getBoolean(R.styleable.WeekView_showCurrentTimeFirst, false),
+
+        // Header bottom line
         showHeaderRowBottomLine = a.getBoolean(R.styleable.WeekView_showHeaderRowBottomLine, false),
         headerRowBottomLineColor = a.getColor(R.styleable.WeekView_headerRowBottomLineColor, Defaults.GRID_COLOR),
         headerRowBottomLineWidth = a.getDimensionPixelSize(R.styleable.WeekView_headerRowBottomLineWidth, 1),
+
+        // Header bottom shadow
+        showHeaderRowBottomShadow = a.getBoolean(R.styleable.WeekView_showHeaderRowBottomShadow, true),
+        headerRowBottomShadowColor = a.getColor(R.styleable.WeekView_headerRowBottomShadowColor, Color.LTGRAY),
+        headerRowBottomShadowRadius = a.getDimensionPixelSize(R.styleable.WeekView_headerRowBottomShadowRadius, 2),
 
         // Week number
         showWeekNumber = a.getBoolean(R.styleable.WeekView_showWeekNumber, false),
