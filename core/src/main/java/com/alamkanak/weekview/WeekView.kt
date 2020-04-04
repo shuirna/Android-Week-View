@@ -1053,14 +1053,14 @@ class WeekView<T : Any> @JvmOverloads constructor(
         }
 
     @Deprecated("scrollDuration is no longer being used and will be removed in a future release.")
-    var scrollDuration: Int = SCROLL_DURATION_IN_MILLIS
+    var scrollDuration: Int = 250
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean = gestureHandler.onTouchEvent(event)
 
     override fun computeScroll() {
         super.computeScroll()
-        gestureHandler.computeScroll()
+        // gestureHandler.computeScroll()
     }
 
     /*
@@ -1108,7 +1108,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
      */
     fun goToDate(date: Calendar) {
         val adjustedDate = viewState.getDateWithinDateRange(date)
-        gestureHandler.forceScrollFinished()
+        gestureHandler.stopScroll()
 
         val isWaitingToBeLaidOut = ViewCompat.isLaidOut(this).not()
         if (isWaitingToBeLaidOut) {

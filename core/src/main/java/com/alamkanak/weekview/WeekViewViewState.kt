@@ -154,7 +154,7 @@ internal data class WeekViewViewState<T>(
     var currentAllDayEventHeight: Int = 0,
     var timeTextWidth: Int? = null, // TODO Must be set at some point
 
-    var _headerTextHeight: Int? = null,
+    private var _headerTextHeight: Int? = null,
 
     val startPixels: MutableList<Int> = mutableListOf(),
     val dateRange: MutableList<Calendar> = mutableListOf(),
@@ -184,13 +184,6 @@ internal data class WeekViewViewState<T>(
             right = timeColumnBounds.right,
             bottom = headerBounds.bottom
         )
-
-    /*
-    val weekNumberBounds: Rect
-        get() = headerBounds.copy(
-            right = timeColumnBounds.right - timeColumnSeparatorStrokeWidth // time column separator
-        )
-    */
 
     val weekNumberTextPaint: Paint
         get() = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -329,9 +322,9 @@ internal data class WeekViewViewState<T>(
     private val Calendar.xOrigin: Int
         get() = daysFromToday * widthPerDay * (-1)
 
-//    private fun getXOriginForDate(date: Calendar): Int {
-//        return date.daysFromToday * widthPerDay * -1
-//    }
+    fun getXOriginForDate(date: Calendar): Int {
+        return date.daysFromToday * widthPerDay * -1
+    }
 
 //    fun refreshHeaderRowHeight(hasEventsInHeader: Boolean) {
 //        this.hasEventsInHeader = hasEventsInHeader
