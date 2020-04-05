@@ -2,6 +2,7 @@ package com.alamkanak.weekview
 
 import android.graphics.Canvas
 import android.graphics.Point
+import android.util.SparseArray
 import kotlin.math.roundToInt
 
 typealias HourWithCoordinates = Pair<Int, Point?>
@@ -59,7 +60,7 @@ internal class TimeColumnDrawer<T> : Drawer<T> {
     }
 
     private fun WeekViewViewState<T>.calculateHours(): IntArray {
-        return (startHour until hoursPerDay step timeColumnHoursInterval)
+        return (minHour..maxHour step timeColumnHoursInterval)
             .asIterable()
             .toList()
             .toIntArray()
@@ -80,20 +81,20 @@ internal class TimeColumnDrawer<T> : Drawer<T> {
 
         val timeLabels = viewState.cache.timeLabels
         validHoursWithCoordinates.forEach { (hour, coordinates) ->
-            drawText(timeLabels[hour], coordinates.x, coordinates.y, viewState.timeTextPaint)
+            if (hour in timeLabels) {
+                drawText(timeLabels[hour], coordinates.x, coordinates.y, viewState.timeTextPaint)
+            }
         }
     }
 
     private fun WeekViewViewState<T>.calculateCoordinates(hour: Int): Point? {
-        val heightOfHour = (hourHeight * hour)
+        val heightOfHour = hourHeight * (hour - minHour)
         val topMargin = timeColumnBounds.top + currentOrigin.y + heightOfHour
 
         val isOutsideVisibleArea = topMargin > timeColumnBounds.bottom
         if (isOutsideVisibleArea) {
             return null
         }
-
-        val timeTextWidth = checkNotNull(timeTextWidth)
 
         val x = timeTextWidth + timeColumnPadding
         var y = topMargin + timeTextHeight / 2
@@ -112,3 +113,5 @@ internal class TimeColumnDrawer<T> : Drawer<T> {
 private fun HourWithCoordinates.validate(): HourWithValidCoordinates? {
     return second?.let { HourWithValidCoordinates(first, it) }
 }
+
+private operator fun <E> SparseArray<E>.contains(key: Int): Boolean = indexOfKey(key) >= 0

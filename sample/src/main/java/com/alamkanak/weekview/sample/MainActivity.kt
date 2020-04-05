@@ -5,11 +5,10 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.updatePadding
-import com.alamkanak.weekview.sample.util.EqualSpacingItemDecoration
+import androidx.recyclerview.widget.DividerItemDecoration
 import com.alamkanak.weekview.sample.util.requestFullscreenLayout
 import com.alamkanak.weekview.sample.util.setup
 import dev.chrisbanes.insetter.doOnApplyWindowInsets
-import kotlin.math.roundToInt
 import kotlinx.android.synthetic.main.activity_main.recyclerView
 import kotlinx.android.synthetic.main.view_toolbar.appBarLayout
 import kotlinx.android.synthetic.main.view_toolbar.toolbar
@@ -31,8 +30,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val spacing = resources.getDimension(R.dimen.default_space).roundToInt()
-        recyclerView.addItemDecoration(EqualSpacingItemDecoration(spacing))
+        recyclerView.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
 
         recyclerView.doOnApplyWindowInsets { view, insets, initialState ->
             view.updatePadding(

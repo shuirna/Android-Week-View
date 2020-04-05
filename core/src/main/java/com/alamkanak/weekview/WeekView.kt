@@ -1155,7 +1155,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
             return
         }
 
-        if (hour !in viewState.timeRange) {
+        if (hour !in minHour..maxHour) {
             throw IllegalArgumentException(
                 "Hour must be between ${viewState.minHour} - ${viewState.maxHour} (was $hour)"
             )

@@ -125,7 +125,7 @@ internal data class WeekViewViewState<T>(
     var maxHour: Int = 0,
 
     // Font
-    var typeface: Typeface = Typeface.DEFAULT,
+    var typeface: Typeface = Typeface.DEFAULT_BOLD,
 
     // NEW
     // var headerHeight: Int = 0,
@@ -190,16 +190,20 @@ internal data class WeekViewViewState<T>(
             bottom = headerBounds.bottom
         )
 
+    private val _weekNumberTextPaint: Paint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+
     val weekNumberTextPaint: Paint
-        get() = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        get() = _weekNumberTextPaint.apply {
             color = weekNumberTextColor
             textAlign = Paint.Align.CENTER
             textSize = weekNumberTextSize.toFloat()
             typeface = this@WeekViewViewState.typeface
         }
 
+    private val _weekNumberBackgroundPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
     val weekNumberBackgroundPaint: Paint
-        get() = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        get() = _weekNumberBackgroundPaint.apply {
             color = weekNumberBackgroundColor
         }
 
@@ -246,38 +250,44 @@ internal data class WeekViewViewState<T>(
             goToDate = firstVisibleDate
         }
 
+    private val _timeTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
     @IgnoredOnParcel
-    var timeTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.RIGHT
-        textSize = timeColumnTextSize.toFloat()
-        color = timeColumnTextColor
-        typeface = this@WeekViewViewState.typeface
-    }
+    val timeTextPaint: Paint
+        get() = _timeTextPaint.apply {
+            textAlign = Paint.Align.RIGHT
+            textSize = timeColumnTextSize.toFloat()
+            color = timeColumnTextColor
+            typeface = this@WeekViewViewState.typeface
+        }
 
     init {
-        val hourRange = 0..hoursPerDay
+        val hourRange = effectiveMinHour until maxHour
         val timeLabels = hourRange.map { timeFormatter(it) }
 
-        for (hour in hourRange) {
-            cache.timeLabels[hour] = timeLabels[hour]
+        hourRange.forEachIndexed { index, hour ->
+            cache.timeLabels[hour] = timeLabels[index]
         }
 
         val textWidths = timeLabels.map { timeTextPaint.measureText(it).roundToInt() }
         timeTextWidth = textWidths.max() ?: 0
     }
 
-    private fun calculateTimeColumnTextWidth() = (0..hoursPerDay)
+    private fun calculateTimeColumnTextWidth() = (minHour..maxHour)
         .map { timeFormatter(it) }
         .map { timeTextPaint.measureText(it).roundToInt() }
         .max() ?: 0
 
+    private val _headerTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+
     @IgnoredOnParcel
-    val headerTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = headerRowTextColor
-        textAlign = Paint.Align.CENTER
-        textSize = headerRowTextSize.toFloat()
-        typeface = this@WeekViewViewState.typeface.toBold()
-    }
+    val headerTextPaint: TextPaint
+        get() = _headerTextPaint.apply {
+            color = headerRowTextColor
+            textAlign = Paint.Align.CENTER
+            textSize = headerRowTextSize.toFloat()
+            typeface = this@WeekViewViewState.typeface // .toBold()
+        }
 
     var headerTextHeight: Int
         get() {
@@ -287,31 +297,40 @@ internal data class WeekViewViewState<T>(
             _headerTextHeight = value
         }
 
-    @IgnoredOnParcel
-    val headerRowBottomLinePaint: Paint = Paint().apply {
-        color = headerRowBottomLineColor
-        strokeWidth = headerRowBottomLineWidth.toFloat()
-    }
+    private val _headerRowBottomLinePaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val todayHeaderTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = todayHeaderTextColor
-        textAlign = Paint.Align.CENTER
-        textSize = headerRowTextSize.toFloat()
-        typeface = this@WeekViewViewState.typeface.toBold()
-    }
+    val headerRowBottomLinePaint: Paint
+        get() = _headerRowBottomLinePaint.apply {
+            color = headerRowBottomLineColor
+            strokeWidth = headerRowBottomLineWidth.toFloat()
+        }
+
+    private val _todayHeaderTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     @IgnoredOnParcel
-    val timeColumnBackgroundPaint: Paint = Paint().apply {
-        color = timeColumnBackgroundColor
-    }
+    val todayHeaderTextPaint: TextPaint
+        get() = _todayHeaderTextPaint.apply {
+            color = todayHeaderTextColor
+            textAlign = Paint.Align.CENTER
+            textSize = headerRowTextSize.toFloat()
+            typeface = this@WeekViewViewState.typeface // .toBold()
+        }
+
+    private val _timeColumnBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val startHour: Int
+    val timeColumnBackgroundPaint: Paint
+        get() = _timeColumnBackgroundPaint.apply {
+            color = timeColumnBackgroundColor
+        }
+
+    @IgnoredOnParcel
+    val effectiveMinHour: Int
         get() = if (showMidnightHour && showTimeColumnHourSeparator) {
             minHour
         } else {
-            max(minHour, timeColumnHoursInterval)
+            minHour + 1
         }
 
     @IgnoredOnParcel
@@ -385,77 +404,115 @@ internal data class WeekViewViewState<T>(
             typeface = typeface
         }
 
-    @IgnoredOnParcel
-    val headerBackgroundPaint: Paint = Paint().apply {
-        color = headerRowBackgroundColor
-    }
+    private val _headerBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val dayBackgroundPaint: Paint = Paint().apply {
-        color = dayBackgroundColor
-    }
+    val headerBackgroundPaint: Paint
+        get() = _headerBackgroundPaint.apply {
+            color = headerRowBackgroundColor
+        }
+
+    private val _dayBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val hourSeparatorPaint: Paint = Paint().apply {
-        style = Paint.Style.STROKE
-        strokeWidth = hourSeparatorStrokeWidth.toFloat()
-        color = hourSeparatorColor
-    }
+    val dayBackgroundPaint: Paint
+        get() = _dayBackgroundPaint.apply {
+            color = dayBackgroundColor
+        }
+
+    private val _hourSeparatorPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val daySeparatorPaint: Paint = Paint().apply {
-        style = Paint.Style.STROKE
-        strokeWidth = daySeparatorStrokeWidth.toFloat()
-        color = daySeparatorColor
-    }
+    val hourSeparatorPaint: Paint
+        get() = _hourSeparatorPaint.apply {
+            style = Paint.Style.STROKE
+            strokeWidth = hourSeparatorStrokeWidth.toFloat()
+            color = hourSeparatorColor
+        }
+
+    private val _daySeparatorPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val todayBackgroundPaint: Paint = Paint().apply {
-        color = todayBackgroundColor
-    }
+    val daySeparatorPaint: Paint
+        get() = _daySeparatorPaint.apply {
+            style = Paint.Style.STROKE
+            strokeWidth = daySeparatorStrokeWidth.toFloat()
+            color = daySeparatorColor
+        }
+
+    private val _todayBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val futureBackgroundPaint: Paint = Paint().apply {
-        color = futureBackgroundColor
-    }
+    val todayBackgroundPaint: Paint
+        get() = _todayBackgroundPaint.apply {
+            color = todayBackgroundColor
+        }
+
+    private val _futureBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val pastBackgroundPaint: Paint = Paint().apply {
-        color = pastBackgroundColor
-    }
+    val futureBackgroundPaint: Paint
+        get() = _futureBackgroundPaint.apply {
+            color = futureBackgroundColor
+        }
+
+    private val _pastBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val futureWeekendBackgroundPaint: Paint = Paint().apply {
-        color = futureWeekendBackgroundColor
-    }
+    val pastBackgroundPaint: Paint
+        get() = _pastBackgroundPaint.apply {
+            color = pastBackgroundColor
+        }
+
+    private val _futureWeekendBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val pastWeekendBackgroundPaint: Paint = Paint().apply {
-        color = pastWeekendBackgroundColor
-    }
+    val futureWeekendBackgroundPaint: Paint
+        get() = _futureWeekendBackgroundPaint.apply {
+            color = futureWeekendBackgroundColor
+        }
+
+    private val _pastWeekendBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val timeColumnSeparatorPaint: Paint = Paint().apply {
-        color = timeColumnSeparatorColor
-        strokeWidth = timeColumnSeparatorStrokeWidth.toFloat()
-    }
+    val pastWeekendBackgroundPaint: Paint
+        get() = _pastWeekendBackgroundPaint.apply {
+            color = pastWeekendBackgroundColor
+        }
+
+    private val _timeColumnSeparatorPaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val nowLinePaint: Paint = Paint().apply {
-        strokeWidth = nowLineStrokeWidth.toFloat()
-        color = nowLineColor
-    }
+    val timeColumnSeparatorPaint: Paint
+        get() = _timeColumnSeparatorPaint.apply {
+            color = timeColumnSeparatorColor
+            strokeWidth = timeColumnSeparatorStrokeWidth.toFloat()
+        }
+
+    private val _nowLinePaint: Paint = Paint()
 
     @IgnoredOnParcel
-    val nowDotPaint: Paint = Paint().apply {
-        style = Paint.Style.FILL
-        strokeWidth = nowLineDotRadius.toFloat()
-        color = nowLineDotColor
-        isAntiAlias = true
-    }
+    val nowLinePaint: Paint
+        get() = _nowLinePaint.apply {
+            strokeWidth = nowLineStrokeWidth.toFloat()
+            color = nowLineColor
+        }
+
+    private val _nowDotPaint: Paint = Paint()
+
+    @IgnoredOnParcel
+    val nowDotPaint: Paint
+        get() = _nowDotPaint.apply {
+            style = Paint.Style.FILL
+            strokeWidth = nowLineDotRadius.toFloat()
+            color = nowLineDotColor
+            isAntiAlias = true
+        }
+
+    private val _eventTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG)
 
     val eventTextPaint: TextPaint
-        get() = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG).apply {
+        get() = _eventTextPaint.apply {
             style = Paint.Style.FILL
             color = eventTextColor
             textSize = eventTextSize.toFloat()
@@ -465,16 +522,14 @@ internal data class WeekViewViewState<T>(
     val hoursPerDay: Int
         get() = maxHour - minHour
 
-    val timeRange: IntRange
-        get() = minHour..maxHour
-
     val totalDayHeight: Int
         get() = headerBounds.height + (hourHeight * hoursPerDay)
 
     private fun onDateFormatterUpdated() {
         val headerHeight = calculateHeaderHeight()
         _headerBounds = bounds.copy(
-            bottom = bounds.top + headerHeight
+            top = 0,
+            bottom = headerHeight
         )
 
         _timeColumnBounds = _timeColumnBounds.copy(
@@ -519,8 +574,8 @@ internal data class WeekViewViewState<T>(
         val didZoom = newHourHeight != null
 
         if (isNotFillingEntireHeight || didZoom) {
-            newHourHeight = max(checkNotNull(newHourHeight), effectiveMinHourHeight)
-            newHourHeight = min(checkNotNull(newHourHeight), maxHourHeight)
+            val potentialNewHourHeight = maxOf(newHourHeight, effectiveMinHourHeight)
+            newHourHeight = minOf(potentialNewHourHeight, maxHourHeight)
 
             // Compute a minimum hour height so that users can't zoom out further
             // than the desired hours per day
@@ -532,6 +587,9 @@ internal data class WeekViewViewState<T>(
             newHourHeight = null
         }
     }
+
+    private fun minOf(vararg values: Int?): Int? = values.mapNotNull { it }.min()
+    private fun maxOf(vararg values: Int?): Int? = values.mapNotNull { it }.max()
 
     private fun updateVerticalOrigin() {
         // If the new currentOrigin.y is invalid, make it valid.
@@ -546,7 +604,7 @@ internal data class WeekViewViewState<T>(
         val headerHeight = calculateHeaderHeight()
         _headerBounds = bounds.copy(
             top = 0,
-            bottom = bounds.top + headerHeight
+            bottom = headerHeight
         )
     }
 
@@ -583,6 +641,7 @@ internal data class WeekViewViewState<T>(
         updateHeaderBounds()
         updateTimeColumnBounds()
         updateCalendarAreaBounds()
+        updateMinHourHeight()
 
         if (newHeight != oldHeight && showCompleteDay) {
             val calendarAreaHeight = bounds.height - _headerBounds.height
@@ -600,8 +659,7 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun updateMinHourHeight() {
-        // val x = headerBounds.height + headerRowPadding * 2
-        val dynamicHourHeight = (calendarAreaBounds.height) / hoursPerDay
+        val dynamicHourHeight = calendarAreaBounds.height / hoursPerDay
         effectiveMinHourHeight = max(minHourHeight, dynamicHourHeight)
     }
 
@@ -677,6 +735,8 @@ internal data class WeekViewViewState<T>(
             now.atStartOfDay
         }
 
+        // TODO Limit to minHour..maxHour
+
         val hour = desired.hour
         val minutes = desired.minute
         val fraction = minutes.toFloat() / Constants.MINUTES_PER_HOUR
@@ -697,9 +757,8 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun cacheTimeLabels() {
-        val cache = cache.timeLabels
-        for (hour in startHour until hoursPerDay step timeColumnHoursInterval) {
-            cache.put(hour, timeFormatter(hour + minHour))
+        for (hour in effectiveMinHour until maxHour step timeColumnHoursInterval) {
+            cache.timeLabels[hour] = timeFormatter(hour)
         }
     }
 
@@ -716,8 +775,4 @@ internal data class WeekViewViewState<T>(
             timeLabels.clear()
         }
     }
-}
-
-private fun Typeface.toBold(): Typeface {
-    return Typeface.create(this, Typeface.BOLD)
 }
