@@ -49,7 +49,7 @@ internal class AllDayEventsUpdater<T : Any>(
             .mapNotNull { it.bounds?.height }
             .max() ?: 0
 
-        viewState.updateAllDayEventHeight(maximumChipHeight)
+        viewState.currentAllDayEventHeight = maximumChipHeight
     }
 
     private fun calculateTextLayout(
