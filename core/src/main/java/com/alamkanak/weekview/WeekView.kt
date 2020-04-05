@@ -14,7 +14,7 @@ import java.util.Calendar
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-typealias WeekViewDateFormatter = (date: Calendar, numberOfVisibleDays: Int) -> String
+typealias WeekViewDateFormatter = (date: Calendar, numberOfVisibleDays: Int) -> CharSequence
 typealias WeekViewTimeFormatter = (hour: Int) -> String
 
 class WeekView<T : Any> @JvmOverloads constructor(
@@ -54,7 +54,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     @Deprecated("Use dateFormatter and timeFormatter instead.")
     var dateTimeInterpreter: DateTimeInterpreter
         get() = object : DateTimeInterpreter {
-            override fun interpretDate(date: Calendar) = dateFormatter(date, numberOfVisibleDays)
+            override fun interpretDate(date: Calendar) = dateFormatter(date, numberOfVisibleDays).toString()
             override fun interpretTime(hour: Int): String = timeFormatter(hour)
         }
         set(value) {

@@ -23,6 +23,7 @@ dependencies {
 
     implementation libraries.kotlin
     implementation libraries.appCompat
+    implementation libraries.coreKtx
     implementation libraries.emoji
     implementation libraries.threeTenAbp
 

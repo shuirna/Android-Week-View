@@ -1,8 +1,8 @@
 package com.alamkanak.weekview
 
 import android.graphics.Canvas
+import android.text.StaticLayout
 import java.util.Calendar
-import kotlin.math.roundToInt
 
 internal class DayLabelDrawer<T> : Drawer<T> {
 
@@ -12,7 +12,7 @@ internal class DayLabelDrawer<T> : Drawer<T> {
     ) {
         canvas.drawInRect(viewState.headerBounds) {
             viewState.dateRangeWithStartPixels.forEach { (date, startPixel) ->
-                drawLabel(viewState, date, startPixel)
+                canvas.drawLabel(viewState, date, startPixel)
             }
         }
     }
@@ -23,27 +23,42 @@ internal class DayLabelDrawer<T> : Drawer<T> {
         startPixel: Int
     ) {
         val key = date.toEpochDays()
-        val dayLabel = viewState.getOrCreateDateLabel(key, date)
+        val dayLabel = viewState.getOrCreateDateLabel2(key, date)
 
-        val x = startPixel + viewState.drawableWidthPerDay.scaleBy(0.5f)
+        viewState.headerTextHeight = dayLabel.height
 
-        val textPaint = if (date.isToday) {
-            viewState.todayHeaderTextPaint
-        } else {
-            viewState.headerTextPaint
-        }
+        // val x = startPixel + viewState.widthPerDay.scaleBy(0.5f) // - dayLabel.width.scaleBy(0.5f)
+
+//        val textPaint = if (date.isToday) {
+//            viewState.todayHeaderTextPaint
+//        } else {
+//            viewState.headerTextPaint
+//        }
 
         if (viewState.singleLineHeader) {
-            val y = viewState.headerRowPadding - textPaint.ascent().roundToInt()
-            drawText(dayLabel, x, y, textPaint)
+            // val y = viewState.headerRowPadding - textPaint.ascent().roundToInt()
+            val y = viewState.headerRowPadding // - dayLabel.height.scaleBy(0.5f)
+
+            withTranslation(x = startPixel, y = y) {
+                // dayLabel.draw(this)
+                val r = android.graphics.Rect()
+                dayLabel.getLineBounds(0, r)
+                drawTextLayout(dayLabel)
+            }
+            // drawText(dayLabel, x, y, textPaint)
         } else {
             // Draw the multi-line header
             val staticLayout = viewState.cache.multiLineDayLabels.get(key)
+
+            val x = startPixel + viewState.widthPerDay.scaleBy(0.5f)
             val y = viewState.headerRowPadding
 
             withTranslation(x, y) {
-                staticLayout.draw(this)
+                drawTextLayout(staticLayout)
+                // staticLayout.draw(this)
             }
         }
     }
+
+    private fun Canvas.drawTextLayout(textLayout: StaticLayout) = textLayout.draw(this)
 }

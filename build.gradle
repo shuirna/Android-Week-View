@@ -10,6 +10,7 @@ buildscript {
         ]
         versions = [
                 appCompat      : '1.0.2',
+                coreKtx        : '1.2.0',
                 emoji          : '1.0.0',
                 jodaTime       : '2.10.3',
                 jodaTimeAndroid: '2.10.2',
@@ -22,6 +23,7 @@ buildscript {
         ]
         libraries = [
                 appCompat      : "androidx.appcompat:appcompat:${versions.appCompat}",
+                coreKtx        : "androidx.core:core-ktx:${versions.coreKtx}",
                 emoji          : "androidx.emoji:emoji-bundled:${versions.emoji}",
                 jodaTime       : "joda-time:joda-time:${versions.jodaTime}",
                 jodaTimeAndroid: "net.danlew:android.joda:${versions.jodaTimeAndroid}",

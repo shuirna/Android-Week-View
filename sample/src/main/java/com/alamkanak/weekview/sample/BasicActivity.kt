@@ -7,6 +7,7 @@ import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.WeekViewDisplayable
 import com.alamkanak.weekview.sample.data.EventsDatabase
 import com.alamkanak.weekview.sample.data.model.Event
+import com.alamkanak.weekview.sample.util.DayLabelBuilder
 import com.alamkanak.weekview.sample.util.lazyView
 import com.alamkanak.weekview.sample.util.observe
 import com.alamkanak.weekview.sample.util.requestFullscreenLayout
@@ -45,6 +46,11 @@ class BasicActivity : AppCompatActivity() {
 
         requestFullscreenLayout()
         toolbar.setupWithWeekView(weekView, this)
+
+        val dayLabelBuilder = DayLabelBuilder(weekView)
+        weekView.setDateFormatter { date, _ ->
+            dayLabelBuilder.build(date)
+        }
 
         viewModel.events.observe(this) { events ->
             weekView.submit(events)

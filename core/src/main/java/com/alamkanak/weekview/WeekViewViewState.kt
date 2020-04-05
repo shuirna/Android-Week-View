@@ -376,18 +376,21 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun calculateHeaderHeight(): Int {
-        var headerHeight = headerTextHeight + headerRowPadding * 2
+        var headerHeight = /*headerTextHeight +*/ headerRowPadding * 2
 
         if (showHeaderRowBottomLine) {
             headerHeight += headerRowBottomLinePaint.strokeWidth.roundToInt()
         }
 
         if (hasEventsInHeader) {
-            headerHeight += currentAllDayEventHeight
+            // headerHeight += currentAllDayEventHeight
+            headerHeight += cache.dateLabels2.firstOrNull()?.height ?: 0
         }
 
         return headerHeight
     }
+
+    private fun <E> SparseArray<E>.firstOrNull(): E? = if (size() > 0) get(keyAt(0)) else null
 
     val isSingleDay: Boolean
         get() = numberOfVisibleDays == 1
@@ -763,6 +766,7 @@ internal data class WeekViewViewState<T>(
     internal data class Cache<T>(
         val allDayEventLayouts: ArrayMap<EventChip<T>, StaticLayout> = ArrayMap(),
         val dateLabels: SparseArray<String> = SparseArray(),
+        val dateLabels2: SparseArray<StaticLayout> = SparseArray(),
         val multiLineDayLabels: SparseArray<StaticLayout> = SparseArray(),
         val timeLabels: SparseArray<String> = SparseArray()
     ) {
