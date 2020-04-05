@@ -128,7 +128,6 @@ internal data class WeekViewViewState<T>(
     var typeface: Typeface = Typeface.DEFAULT_BOLD,
 
     // NEW
-    // var headerHeight: Int = 0,
 
     var minDate: Calendar? = null,
     var maxDate: Calendar? = null,
@@ -136,10 +135,7 @@ internal data class WeekViewViewState<T>(
     var goToHour: Int? = null,
     var firstVisibleDate: Calendar? = null,
     var lastVisibleDate: Calendar? = null,
-    var hasEventsInHeader: Boolean = false,
-
-//    var height: Int = 0,
-//    var width: Int = 0,
+    var _hasEventsInHeader: Boolean = false,
 
     private var _bounds: Rect = Rect(-1, -1, -1, -1),
     private var _timeColumnBounds: Rect = Rect(-1, -1, -1, -1),
@@ -153,10 +149,8 @@ internal data class WeekViewViewState<T>(
 
     // Dates in the past have origin.x > 0, dates in the future have origin.x < 0
     var currentOrigin: Point = Point(0, 0),
-    // var drawableWidthPerDay: Float = 0f,
-    // var drawableWidthPerDay: Int = 0,
 
-    var currentAllDayEventHeight: Int = 0,
+    private var _currentAllDayEventHeight: Int = 0,
     var timeTextWidth: Int = 0,
 
     private var _headerTextHeight: Int? = null,
@@ -250,10 +244,10 @@ internal data class WeekViewViewState<T>(
             goToDate = firstVisibleDate
         }
 
-    private val _timeTextPaint: Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val _timeTextPaint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     @IgnoredOnParcel
-    val timeTextPaint: Paint
+    val timeTextPaint: TextPaint
         get() = _timeTextPaint.apply {
             textAlign = Paint.Align.RIGHT
             textSize = timeColumnTextSize.toFloat()
@@ -286,15 +280,28 @@ internal data class WeekViewViewState<T>(
             color = headerRowTextColor
             textAlign = Paint.Align.CENTER
             textSize = headerRowTextSize.toFloat()
-            typeface = this@WeekViewViewState.typeface // .toBold()
+            typeface = this@WeekViewViewState.typeface
         }
 
     var headerTextHeight: Int
-        get() {
-            return _headerTextHeight ?: headerTextPaint.textHeight
-        }
+        get() = _headerTextHeight ?: headerTextPaint.textHeight
         set(value) {
             _headerTextHeight = value
+            refreshHeaderHeight()
+        }
+
+    var hasEventsInHeader: Boolean
+        get() = _hasEventsInHeader
+        set(value) {
+            _hasEventsInHeader = value
+            refreshHeaderHeight()
+        }
+
+    var currentAllDayEventHeight: Int
+        get() = _currentAllDayEventHeight
+        set(value) {
+            _currentAllDayEventHeight = value
+            refreshHeaderHeight()
         }
 
     private val _headerRowBottomLinePaint: Paint = Paint()
@@ -314,7 +321,7 @@ internal data class WeekViewViewState<T>(
             color = todayHeaderTextColor
             textAlign = Paint.Align.CENTER
             textSize = headerRowTextSize.toFloat()
-            typeface = this@WeekViewViewState.typeface // .toBold()
+            typeface = this@WeekViewViewState.typeface
         }
 
     private val _timeColumnBackgroundPaint: Paint = Paint()
@@ -354,7 +361,7 @@ internal data class WeekViewViewState<T>(
     }
 
     // TODO Deprecate?
-    fun refreshHeaderHeight() {
+    private fun refreshHeaderHeight() {
         val headerHeight = calculateHeaderHeight()
         _headerBounds = _headerBounds.copy(bottom = headerBounds.top + headerHeight)
 
@@ -390,11 +397,6 @@ internal data class WeekViewViewState<T>(
 
     val minutesPerDay: Int
         get() = (hoursPerDay * Constants.MINUTES_PER_HOUR).toInt()
-
-    fun updateAllDayEventHeight(height: Int) {
-        currentAllDayEventHeight = height
-        refreshHeaderHeight()
-    }
 
     val allDayEventTextPaint: TextPaint
         get() = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG).apply {
@@ -544,10 +546,9 @@ internal data class WeekViewViewState<T>(
     private fun onTimeFormatterUpdated() {
         val headerHeight = headerBounds.height
 
-        // TODO Calculate time column text height when paint is updated
+        timeTextWidth = calculateTimeColumnTextWidth()
+        val columnWidth = timeTextWidth + timeColumnPadding * 2
 
-        val textWidth = calculateTimeColumnTextWidth()
-        val columnWidth = textWidth + timeColumnPadding * 2
         _timeColumnBounds = bounds.copy(
             top = headerHeight,
             right = bounds.left + columnWidth
@@ -763,7 +764,7 @@ internal data class WeekViewViewState<T>(
         val allDayEventLayouts: ArrayMap<EventChip<T>, StaticLayout> = ArrayMap(),
         val dateLabels: SparseArray<String> = SparseArray(),
         val multiLineDayLabels: SparseArray<StaticLayout> = SparseArray(),
-        val timeLabels: SparseArray<String> = SparseArray<String>()
+        val timeLabels: SparseArray<String> = SparseArray()
     ) {
         fun clear() {
             allDayEventLayouts.clear()
@@ -772,4 +773,8 @@ internal data class WeekViewViewState<T>(
             timeLabels.clear()
         }
     }
+}
+
+internal operator fun <E> SparseArray<E>.set(key: Int, value: E) {
+    put(key, value)
 }

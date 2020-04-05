@@ -30,7 +30,7 @@ internal class MultiLineDayLabelHeightUpdater<T : Any> : Updater<T> {
 
         for ((date, multiDayLabel) in multiDayLabels) {
             val key = date.toEpochDays()
-            viewState.cache.multiLineDayLabels.put(key, multiDayLabel)
+            viewState.cache.multiLineDayLabels[key] = multiDayLabel
         }
 
         val staticLayout = multiDayLabels
@@ -38,7 +38,6 @@ internal class MultiLineDayLabelHeightUpdater<T : Any> : Updater<T> {
             .maxBy { it.height }
 
         viewState.headerTextHeight = staticLayout?.height ?: 0
-        viewState.refreshHeaderHeight()
     }
 
     private fun calculateStaticLayoutForDate(
