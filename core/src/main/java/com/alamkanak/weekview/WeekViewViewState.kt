@@ -727,22 +727,18 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun scrollToCurrentTime() {
-        val now = now()
-
-        val desired = if (now.hour > 0) {
+        val desired = now()
+        if (desired.hour > minHour) {
             // Add some padding above the current time (and thus: the now line)
-            now - Hours(1)
-        } else {
-            now.atStartOfDay
+            desired -= Hours(1)
         }
 
-        // TODO Limit to minHour..maxHour
+        val minTime = now().withTime(hour = minHour, minutes = 0)
+        val maxTime = now().withTime(hour = maxHour, minutes = 0)
+        desired.limitBy(minTime, maxTime)
 
-        val hour = desired.hour
-        val minutes = desired.minute
-        val fraction = minutes.toFloat() / Constants.MINUTES_PER_HOUR
-
-        val verticalOffset = (hourHeight * (hour + fraction)).roundToInt()
+        val fraction = desired.minute.toFloat() / Constants.MINUTES_PER_HOUR
+        val verticalOffset = (hourHeight * (desired.hour + fraction)).roundToInt()
         val desiredOffset = totalDayHeight - bounds.height
 
         currentOrigin.y = min(desiredOffset, verticalOffset) * -1
