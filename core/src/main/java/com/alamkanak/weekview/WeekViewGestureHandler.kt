@@ -11,8 +11,6 @@ import com.alamkanak.weekview.Direction.None
 import com.alamkanak.weekview.Direction.Right
 import java.util.Calendar
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 private enum class Direction {
@@ -90,9 +88,11 @@ internal class WeekViewGestureHandler<T : Any>(
         // Calculate the new origin after scroll.
         when {
             currentScrollDirection.isHorizontal -> {
-                viewState.currentOrigin.x -= distanceX.roundToInt()
-                viewState.currentOrigin.x = min(viewState.currentOrigin.x, viewState.maxX)
-                viewState.currentOrigin.x = max(viewState.currentOrigin.x, viewState.minX)
+                val newOffset = viewState.currentOrigin.x - distanceX.roundToInt()
+                viewState.currentOrigin.x = newOffset.limit(
+                    minValue = viewState.minX,
+                    maxValue = viewState.maxX
+                )
                 onInvalidation()
             }
             currentScrollDirection.isVertical -> {
@@ -142,7 +142,10 @@ internal class WeekViewGestureHandler<T : Any>(
         }
 
         val destinationOffset = viewState.getXOriginForDate(destinationDate)
-        val adjustedDestinationOffset = min(max(viewState.minX, destinationOffset), viewState.maxX)
+        val adjustedDestinationOffset = destinationOffset.limit(
+            minValue = viewState.minX,
+            maxValue = viewState.maxX
+        )
 
         smoothScroller.animate(
             fromValue = viewState.currentOrigin.x,
@@ -165,7 +168,7 @@ internal class WeekViewGestureHandler<T : Any>(
 
         val currentOffset = viewState.currentOrigin.y
         val destinationOffset = currentOffset + (originalVelocityY * 0.18).roundToInt()
-        val adjustedDestinationOffset = min(max(destinationOffset, minY), maxY)
+        val adjustedDestinationOffset = destinationOffset.limit(minValue = minY, maxValue = maxY)
 
         smoothScroller.animate(
             fromValue = viewState.currentOrigin.y,
@@ -203,17 +206,6 @@ internal class WeekViewGestureHandler<T : Any>(
     private fun goToNearestOrigin() {
         val dayWidth = viewState.widthPerDay
         val daysFromOrigin = viewState.currentOrigin.x / dayWidth.toDouble()
-
-//        val adjustedDaysFromOrigin = when {
-//            // snap to nearest day
-//            currentFlingDirection != None -> round(daysFromOrigin)
-//            // snap to last day
-//            currentScrollDirection == Left -> floor(daysFromOrigin)
-//            // snap to next day
-//            currentScrollDirection == None -> ceil(daysFromOrigin)
-//            // snap to nearest day
-//            else -> round(daysFromOrigin)
-//        }
         val adjustedDaysFromOrigin = daysFromOrigin.roundToInt()
 
         val nearestOrigin = viewState.currentOrigin.x - adjustedDaysFromOrigin * dayWidth

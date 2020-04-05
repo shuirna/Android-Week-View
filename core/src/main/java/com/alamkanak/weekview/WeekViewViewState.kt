@@ -595,9 +595,11 @@ internal data class WeekViewViewState<T>(
         // If the new currentOrigin.y is invalid, make it valid.
         val dayHeight = hourHeight * hoursPerDay
         val headerHeight = headerBounds.height
-        val potentialNewVerticalOrigin = bounds.height - (dayHeight + headerHeight)
-        currentOrigin.y = max(currentOrigin.y, potentialNewVerticalOrigin)
-        currentOrigin.y = min(currentOrigin.y, 0)
+        val newVerticalOrigin = bounds.height - (dayHeight + headerHeight)
+        currentOrigin.y = newVerticalOrigin.limit(
+            minValue = currentOrigin.y,
+            maxValue = 0
+        )
     }
 
     private fun updateHeaderBounds() {
@@ -690,14 +692,14 @@ internal data class WeekViewViewState<T>(
         dateRangeWithStartPixels += dateRange.zip(startPixels)
     }
 
-    fun computeDifferenceWithFirstDayOfWeek(date: Calendar): Int {
+    fun Calendar.computeDifferenceWithFirstDayOfWeek(): Int {
         val firstDayOfWeek = firstDayOfWeek
-        return if (firstDayOfWeek == Calendar.MONDAY && date.dayOfWeek == Calendar.SUNDAY) {
+        return if (firstDayOfWeek == Calendar.MONDAY && dayOfWeek == Calendar.SUNDAY) {
             // Special case, because Calendar.MONDAY has constant value 2 and Calendar.SUNDAY has
             // constant value 1. The correct result to return is 6 days, not -1 days.
             6
         } else {
-            date.dayOfWeek - firstDayOfWeek
+            dayOfWeek - firstDayOfWeek
         }
     }
 
@@ -715,14 +717,13 @@ internal data class WeekViewViewState<T>(
         }
 
         // Overwrites the origin when today is out of date range
-        currentOrigin.x = min(currentOrigin.x, maxX)
-        currentOrigin.x = max(currentOrigin.x, minX)
+        currentOrigin.x = currentOrigin.x.limit(minValue = minX, maxValue = maxX)
         isFirstDraw = false
     }
 
     private fun scrollToFirstDayOfWeek() {
-        val difference = computeDifferenceWithFirstDayOfWeek(today())
-        currentOrigin.x += (widthPerDay + columnGap) * difference
+        val difference = today().computeDifferenceWithFirstDayOfWeek()
+        currentOrigin.x += widthPerDay * difference
     }
 
     private fun scrollToCurrentTime() {

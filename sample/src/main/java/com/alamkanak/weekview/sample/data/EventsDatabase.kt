@@ -1,7 +1,6 @@
 package com.alamkanak.weekview.sample.data
 
 import android.content.Context
-import android.graphics.Color
 import androidx.core.content.ContextCompat
 import com.alamkanak.weekview.WeekViewDisplayable
 import com.alamkanak.weekview.sample.R
@@ -228,7 +227,7 @@ class EventsDatabase(
 
         // Invert colors if event is canceled
         val realTextColor = if (isCanceled) backgroundColor else textColor
-        val realBackgroundColor = if (isCanceled) Color.TRANSPARENT else backgroundColor
+        val realBackgroundColor = if (isCanceled) textColor else backgroundColor
 
         val title = buildEventTitle(startTime)
         return Event(

@@ -1125,7 +1125,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         } else if (date.isAfter(maxDate)) {
             maxDate + Days(1 - numberOfVisibleDays)
         } else if (numberOfVisibleDays >= 7 && showFirstDayOfWeekFirst) {
-            val diff = computeDifferenceWithFirstDayOfWeek(date)
+            val diff = date.computeDifferenceWithFirstDayOfWeek()
             date - Days(diff)
         } else {
             date
