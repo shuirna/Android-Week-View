@@ -10,31 +10,31 @@ internal class HeaderRowDrawer<T> : Drawer<T> {
     override fun draw(
         viewState: WeekViewViewState<T>,
         canvas: Canvas
-    ) = with(viewState) {
+    ) {
+        canvas.drawBackground(viewState)
+
+        if (viewState.showWeekNumber) {
+            canvas.drawWeekNumber(viewState)
+        }
+
+        if (viewState.showHeaderRowBottomLine) {
+            canvas.drawHeaderRowBottomLine(viewState)
+        }
+    }
+
+    private fun Canvas.drawBackground(viewState: WeekViewViewState<T>) {
         val backgroundPaint = when {
             viewState.showHeaderRowBottomShadow -> {
-                headerBackgroundPaint.withShadow(
+                viewState.headerBackgroundPaint.withShadow(
                     radius = viewState.headerRowBottomShadowRadius,
                     color = viewState.headerRowBottomShadowColor
                 )
             }
-            else -> headerBackgroundPaint
+            else -> viewState.headerBackgroundPaint
         }
 
-        val backgroundBounds = headerBounds.copy(left = 0)
-        canvas.drawRect(backgroundBounds, backgroundPaint)
-
-        if (showWeekNumber) {
-            canvas.drawWeekNumber(viewState = this)
-        }
-
-        if (showHeaderRowBottomLine) {
-            val lineBounds = headerBounds.copy(
-                left = 0,
-                top = headerBounds.bottom - headerRowBottomLineWidth
-            )
-            canvas.drawRect(lineBounds, headerRowBottomLinePaint)
-        }
+        val backgroundBounds = viewState.headerBounds.copy(left = 0)
+        drawRect(backgroundBounds, backgroundPaint)
     }
 
     private fun Canvas.drawWeekNumber(viewState: WeekViewViewState<T>) {
@@ -63,6 +63,14 @@ internal class HeaderRowDrawer<T> : Drawer<T> {
         drawRoundRect(backgroundRect, radius, radius, backgroundPaint)
 
         drawText(weekNumber, bounds.centerX(), bounds.centerY() + textOffset, paint)
+    }
+
+    private fun Canvas.drawHeaderRowBottomLine(viewState: WeekViewViewState<T>) = with(viewState) {
+        val lineBounds = headerBounds.copy(
+            left = 0,
+            top = headerBounds.bottom - headerRowBottomLineWidth
+        )
+        drawRect(lineBounds, headerRowBottomLinePaint)
     }
 
     private fun Paint.withShadow(radius: Int, color: Int): Paint {

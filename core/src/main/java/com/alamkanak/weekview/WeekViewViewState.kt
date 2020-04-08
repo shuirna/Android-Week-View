@@ -135,7 +135,6 @@ internal data class WeekViewViewState<T>(
     var goToHour: Int? = null,
     var firstVisibleDate: Calendar? = null,
     var lastVisibleDate: Calendar? = null,
-    var _hasEventsInHeader: Boolean = false,
 
     private var _bounds: Rect = Rect(-1, -1, -1, -1),
     private var _timeColumnBounds: Rect = Rect(-1, -1, -1, -1),
@@ -290,13 +289,6 @@ internal data class WeekViewViewState<T>(
             refreshHeaderHeight()
         }
 
-    var hasEventsInHeader: Boolean
-        get() = _hasEventsInHeader
-        set(value) {
-            _hasEventsInHeader = value
-            refreshHeaderHeight()
-        }
-
     var currentAllDayEventHeight: Int
         get() = _currentAllDayEventHeight
         set(value) {
@@ -376,14 +368,10 @@ internal data class WeekViewViewState<T>(
     }
 
     private fun calculateHeaderHeight(): Int {
-        var headerHeight = headerTextHeight + headerRowPadding * 2
+        var headerHeight = headerTextHeight + headerRowPadding * 2 + currentAllDayEventHeight
 
         if (showHeaderRowBottomLine) {
             headerHeight += headerRowBottomLinePaint.strokeWidth.roundToInt()
-        }
-
-        if (hasEventsInHeader) {
-            headerHeight += currentAllDayEventHeight
         }
 
         return headerHeight
@@ -762,13 +750,13 @@ internal data class WeekViewViewState<T>(
 
     internal data class Cache<T>(
         val allDayEventLayouts: ArrayMap<EventChip<T>, StaticLayout> = ArrayMap(),
-        val dateLabels: SparseArray<String> = SparseArray(),
+        val dateLayouts: SparseArray<StaticLayout> = SparseArray(),
         val multiLineDayLabels: SparseArray<StaticLayout> = SparseArray(),
         val timeLabels: SparseArray<String> = SparseArray()
     ) {
         fun clear() {
             allDayEventLayouts.clear()
-            dateLabels.clear()
+            dateLayouts.clear()
             multiLineDayLabels.clear()
             timeLabels.clear()
         }

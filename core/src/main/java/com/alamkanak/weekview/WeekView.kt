@@ -79,9 +79,8 @@ class WeekView<T : Any> @JvmOverloads constructor(
     // Be careful when changing the order of the updaters, as the calculation of any updater might
     // depend on results of previous updaters
     private val updaters = listOf(
-        MultiLineDayLabelHeightUpdater(),
         AllDayEventsUpdater(context, cache, eventChipCache),
-        HeaderRowHeightUpdater(eventsCacheWrapper),
+        DateLabelsUpdater(),
         SingleEventsUpdater(eventChipCache)
     )
 
@@ -107,7 +106,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         NowLineDrawer(),
         TimeColumnDrawer(),
         HeaderRowDrawer(),
-        DayLabelDrawer(),
+        DateLabelsDrawer(),
         AllDayEventsDrawer(context, viewState, cache)
     )
 

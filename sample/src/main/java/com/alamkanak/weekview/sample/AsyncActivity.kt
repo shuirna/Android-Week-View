@@ -51,7 +51,7 @@ class AsyncActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_basic)
+        setContentView(R.layout.activity_async)
 
         requestFullscreenLayout()
         toolbar.setupWithWeekView(weekView, this)
