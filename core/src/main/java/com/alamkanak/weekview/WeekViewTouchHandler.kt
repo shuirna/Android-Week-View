@@ -17,20 +17,14 @@ internal class WeekViewTouchHandler<T : Any>(
     var onEmptyViewClickListener: OnEmptyViewClickListener? = null
     var onEmptyViewLongClickListener: OnEmptyViewLongClickListener? = null
 
-    fun handleLongClick(
-        x: Float,
-        y: Float
-    ) {
+    fun handleLongClick(x: Float, y: Float) {
         val handled = onEventLongClickListener?.handleLongClick(x, y) ?: false
         if (!handled) {
             onEmptyViewLongClickListener?.handleLongClick(x, y)
         }
     }
 
-    fun handleClick(
-        x: Float,
-        y: Float
-    ) {
+    fun handleClick(x: Float, y: Float) {
         val handled = onEventClickListener?.handleClick(x, y) ?: false
         if (!handled) {
             onEmptyViewClickListener?.handleClick(x, y)
@@ -40,14 +34,11 @@ internal class WeekViewTouchHandler<T : Any>(
     /**
      * Returns the date and time that the user clicked on.
      *
-     * @param touchX The x coordinate of the touch event.
-     * @param touchY The y coordinate of the touch event.
+     * @param x The x coordinate of the touch event.
+     * @param y The y coordinate of the touch event.
      * @return The [Calendar] of the clicked position, or null if none was found.
      */
-    fun calculateTimeFromPoint(
-        touchX: Float,
-        touchY: Float
-    ): Calendar? {
+    fun calculateTimeFromPoint(x: Float, y: Float): Calendar? {
         val widthPerDay = viewState.drawableWidthPerDay
         val totalDayWidth = widthPerDay + viewState.columnGap
         val originX = viewState.currentOrigin.x
@@ -65,13 +56,13 @@ internal class WeekViewTouchHandler<T : Any>(
             val width = end - start
 
             val isVisibleHorizontally = width > 0
-            val isWithinDay = touchX in start..end
+            val isWithinDay = x.roundToInt() in start..end
 
             if (isVisibleHorizontally && isWithinDay) {
                 val day = now() + Days(dayNumber - 1)
 
                 val hourHeight = viewState.hourHeight
-                val pixelsFromMidnight = touchY - viewState.currentOrigin.y - viewState.headerBounds.height
+                val pixelsFromMidnight = y - viewState.currentOrigin.y - viewState.headerBounds.height
                 val hour = (pixelsFromMidnight / hourHeight).toInt()
 
                 val pixelsFromFullHour = pixelsFromMidnight - hour * hourHeight
@@ -97,12 +88,9 @@ internal class WeekViewTouchHandler<T : Any>(
         }
     }
 
-    private fun OnEventClickListener<T>.handleClick(
-        x: Float,
-        y: Float
-    ): Boolean {
+    private fun OnEventClickListener<T>.handleClick(x: Float, y: Float): Boolean {
         val eventChip = findHitEvent(x, y) ?: return false
-        val isInHeader = y in viewState.x..viewState.headerBounds.bottom
+        val isInHeader = y.roundToInt() in viewState.x..viewState.headerBounds.bottom
 
         if (eventChip.event.isNotAllDay && isInHeader) {
             // The user tapped in the header area and a single event that is rendered below it
@@ -119,24 +107,17 @@ internal class WeekViewTouchHandler<T : Any>(
         return true
     }
 
-    private fun OnEmptyViewClickListener.handleClick(
-        x: Float,
-        y: Float
-    ) {
+    private fun OnEmptyViewClickListener.handleClick(x: Float, y: Float) {
         // If the tap was on in an empty space, then trigger the callback.
-        val isWithinCalendarArea = viewState.calendarAreaBounds.contains(x.roundToInt(), y.roundToInt())
-        if (isWithinCalendarArea) {
+        if (viewState.calendarAreaBounds.contains(x.roundToInt(), y.roundToInt())) {
             calculateTimeFromPoint(x, y)?.let { time ->
                 onEmptyViewClicked(time)
             }
         }
     }
 
-    private fun OnEventLongClickListener<T>.handleLongClick(
-        x: Float,
-        y: Float
-    ): Boolean {
-        val isInHeader = y in viewState.x..viewState.headerBounds.bottom
+    private fun OnEventLongClickListener<T>.handleLongClick(x: Float, y: Float): Boolean {
+        val isInHeader = y.roundToInt() in viewState.x..viewState.headerBounds.bottom
         val eventChip = findHitEvent(x, y) ?: return false
 
         if (eventChip.event.isNotAllDay && isInHeader) {

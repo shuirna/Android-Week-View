@@ -23,17 +23,15 @@ internal class HeaderRowDrawer<T> : Drawer<T> {
     }
 
     private fun Canvas.drawBackground(viewState: WeekViewViewState<T>) {
-        val backgroundPaint = when {
-            viewState.showHeaderRowBottomShadow -> {
-                viewState.headerBackgroundPaint.withShadow(
-                    radius = viewState.headerRowBottomShadowRadius,
-                    color = viewState.headerRowBottomShadowColor
-                )
-            }
-            else -> viewState.headerBackgroundPaint
-        }
-
         val backgroundBounds = viewState.headerBounds.copy(left = 0)
+
+        val backgroundPaint = if (viewState.showHeaderRowBottomShadow) {
+            viewState.headerBackgroundPaint.withShadow(
+                radius = viewState.headerRowBottomShadowRadius,
+                color = viewState.headerRowBottomShadowColor
+            )
+        } else viewState.headerBackgroundPaint
+
         drawRect(backgroundBounds, backgroundPaint)
     }
 
@@ -73,9 +71,7 @@ internal class HeaderRowDrawer<T> : Drawer<T> {
         drawRect(lineBounds, headerRowBottomLinePaint)
     }
 
-    private fun Paint.withShadow(radius: Int, color: Int): Paint {
-        return Paint(this).apply {
-            setShadowLayer(radius.toFloat(), 0f, 0f, color)
-        }
+    private fun Paint.withShadow(radius: Int, color: Int): Paint = Paint(this).apply {
+        setShadowLayer(radius.toFloat(), 0f, 0f, color)
     }
 }

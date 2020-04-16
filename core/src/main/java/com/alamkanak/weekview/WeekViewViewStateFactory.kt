@@ -1,7 +1,6 @@
 package com.alamkanak.weekview
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
@@ -18,7 +17,7 @@ internal fun <T> WeekViewViewState(
     val a = context.theme.obtainStyledAttributes(attrs, R.styleable.WeekView, 0, 0)
     return WeekViewViewState<T>(
         // Calendar configuration
-        firstDayOfWeek = a.getInt(R.styleable.WeekView_firstDayOfWeek, defaultValue = { now().firstDayOfWeek }),
+        firstDayOfWeek = a.getInt(R.styleable.WeekView_firstDayOfWeek, now().firstDayOfWeek),
         _numberOfVisibleDays = a.getInt(R.styleable.WeekView_numberOfVisibleDays, 3),
         restoreNumberOfVisibleDays = a.getBoolean(R.styleable.WeekView_restoreNumberOfVisibleDays, true),
         showFirstDayOfWeekFirst = a.getBoolean(R.styleable.WeekView_showFirstDayOfWeekFirst, false),
@@ -148,12 +147,4 @@ private fun Typeface(
     SERIF -> Typeface.SERIF
     MONOSPACE -> Typeface.MONOSPACE
     else -> Typeface.DEFAULT
-}
-
-private fun TypedArray.getInt(index: Int, defaultValue: () -> Int): Int {
-    return if (hasValue(index)) {
-        getInt(index, 0)
-    } else {
-        defaultValue()
-    }
 }

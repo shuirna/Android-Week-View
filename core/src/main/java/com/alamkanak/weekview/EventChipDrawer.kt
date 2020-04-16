@@ -16,7 +16,7 @@ internal class EventChipDrawer<T>(
     private val viewState: WeekViewViewState<T>
 ) {
 
-    private val textFitter = TextFitter<T>(context, viewState)
+    private val textFitter = TextFitter(context, viewState)
     private val textLayoutCache = mutableMapOf<Long, StaticLayout>()
 
     private val backgroundPaint = Paint()

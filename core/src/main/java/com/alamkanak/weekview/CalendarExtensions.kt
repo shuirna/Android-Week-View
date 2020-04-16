@@ -6,24 +6,9 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
-internal interface Duration {
-    val inMillis: Int
-}
-
-internal inline class Days(val days: Int) : Duration {
-    override val inMillis: Int
-        get() = days * (24 * 60 * 60 * 1_000)
-}
-
-internal inline class Hours(val hours: Int) : Duration {
-    override val inMillis: Int
-        get() = hours * (60 * 60 * 1_000)
-}
-
-internal inline class Millis(val millis: Int) : Duration {
-    override val inMillis: Int
-        get() = millis
-}
+internal inline class Days(val days: Int)
+internal inline class Hours(val hours: Int)
+internal inline class Millis(val millis: Int)
 
 internal var Calendar.hour: Int
     get() = get(Calendar.HOUR_OF_DAY)

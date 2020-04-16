@@ -386,21 +386,21 @@ internal data class WeekViewViewState<T>(
     val minutesPerDay: Int
         get() = (hoursPerDay * Constants.MINUTES_PER_HOUR).toInt()
 
+    private val _allDayEventTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG)
+
     val allDayEventTextPaint: TextPaint
-        get() = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG).apply {
+        get() = _allDayEventTextPaint.apply {
             style = Paint.Style.FILL
             color = eventTextColor
             textSize = allDayEventTextSize.toFloat()
-            typeface = typeface
+            typeface = this@WeekViewViewState.typeface
         }
 
     private val _headerBackgroundPaint: Paint = Paint()
 
     @IgnoredOnParcel
     val headerBackgroundPaint: Paint
-        get() = _headerBackgroundPaint.apply {
-            color = headerRowBackgroundColor
-        }
+        get() = _headerBackgroundPaint.apply { color = headerRowBackgroundColor }
 
     private val _dayBackgroundPaint: Paint = Paint()
 
@@ -642,6 +642,7 @@ internal data class WeekViewViewState<T>(
     }
 
     fun update() {
+        hasBeenInvalidated = false
         updateMinHourHeight()
         refreshAfterZooming()
         updateVerticalOrigin()

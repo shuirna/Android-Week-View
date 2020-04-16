@@ -48,6 +48,7 @@ fun Toolbar.setupWithWeekView(weekView: WeekView<*>, activity: Activity) {
         when (item.itemId) {
             R.id.action_today -> {
                 weekView.goToToday()
+                // TODO Fix weekView.goToCurrentTime()
                 true
             }
             else -> {

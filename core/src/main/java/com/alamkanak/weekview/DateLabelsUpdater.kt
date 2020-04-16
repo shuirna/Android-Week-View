@@ -1,6 +1,5 @@
 package com.alamkanak.weekview
 
-import android.graphics.Color
 import android.text.StaticLayout
 import java.util.Calendar
 
@@ -39,8 +38,6 @@ internal class DateLabelsUpdater<T> : Updater<T> {
     private fun WeekViewViewState<T>.createDateTextLayout(date: Calendar): StaticLayout {
         val dateLabel = dateFormatter(date, numberOfVisibleDays)
         val textPaint = if (date.isToday) todayHeaderTextPaint else headerTextPaint
-        return dateLabel.toTextLayout(textPaint = textPaint.apply {
-            bgColor = Color.RED
-        }, width = drawableWidthPerDay)
+        return dateLabel.toTextLayout(textPaint = textPaint, width = drawableWidthPerDay)
     }
 }

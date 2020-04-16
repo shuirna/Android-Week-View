@@ -34,7 +34,10 @@ class EventsLoadersTest {
         assertCachingEventsLoader()
 
         val date = createDate(2019, FEBRUARY, 24)
-        val event = Event(date, date + Hours(1)).toWeekViewEvent()
+        val event = Event(
+            startTime = date,
+            endTime = date + Hours(1)
+        ).toWeekViewEvent()
 
         fillCache(event)
         assertDateRangeContains(date, event)
