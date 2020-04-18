@@ -36,7 +36,7 @@ internal class HeaderRowDrawer<T> : Drawer<T> {
     }
 
     private fun Canvas.drawWeekNumber(viewState: WeekViewViewState<T>) {
-        val weekNumber = viewState.firstVisibleDate?.weekOfYear?.toString() ?: return
+        val weekNumber = viewState.firstVisibleDate.weekOfYear.toString()
 
         val bounds = viewState.weekNumberBounds
         val paint = viewState.weekNumberTextPaint

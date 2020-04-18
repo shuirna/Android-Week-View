@@ -8,14 +8,14 @@ import java.util.Calendar
 internal class SavedState : BaseSavedState {
 
     var numberOfVisibleDays: Int = 0
-    var firstVisibleDate: Calendar? = null
+    var firstVisibleDate: Calendar = now()
 
     constructor(superState: Parcelable) : super(superState)
 
     constructor(
         superState: Parcelable,
         numberOfVisibleDays: Int,
-        firstVisibleDate: Calendar?
+        firstVisibleDate: Calendar
     ) : super(superState) {
         this.numberOfVisibleDays = numberOfVisibleDays
         this.firstVisibleDate = firstVisibleDate

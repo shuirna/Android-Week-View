@@ -141,10 +141,8 @@ class WeekView<T : Any> @JvmOverloads constructor(
             return
         }
 
-        val firstVisibleDate = checkNotNull(viewState.firstVisibleDate)
-
         // These can either be newly loaded events or previously cached events
-        val events = eventsLoader.refresh(firstVisibleDate)
+        val events = eventsLoader.refresh(viewState.firstVisibleDate)
         eventChipCache.clear()
 
         if (events.isNotEmpty()) {
@@ -184,7 +182,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
             viewState.numberOfVisibleDays = savedState.numberOfVisibleDays
         }
 
-        savedState.firstVisibleDate?.let {
+        savedState.firstVisibleDate.let {
             goToDate(it)
         }
     }
@@ -203,21 +201,13 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private fun notifyScrollListeners() {
         val oldFirstVisibleDay = viewState.firstVisibleDate
         val totalDayWidth = viewState.widthPerDay
-        val visibleDays = viewState.numberOfVisibleDays
 
         val daysScrolled = (viewState.currentOrigin.x / totalDayWidth.toFloat()).roundToInt()
         val delta = daysScrolled * (-1)
 
-        val firstVisibleDate = today() + Days(delta)
-        val lastVisibleDate = firstVisibleDate + Days(visibleDays - 1)
+        viewState.firstVisibleDate = today() + Days(delta)
 
-        viewState.firstVisibleDate = firstVisibleDate
-        viewState.lastVisibleDate = lastVisibleDate
-
-        val hasFirstVisibleDayChanged = oldFirstVisibleDay?.let {
-            firstVisibleDate.isSameDate(it).not()
-        } ?: true
-
+        val hasFirstVisibleDayChanged = firstVisibleDate.isNotEqual(oldFirstVisibleDay)
         if (hasFirstVisibleDayChanged) {
             scrollListener?.onFirstVisibleDateChanged(firstVisibleDate)
             onRangeChangeListener?.onRangeChanged(firstVisibleDate, lastVisibleDate)
@@ -1126,15 +1116,15 @@ class WeekView<T : Any> @JvmOverloads constructor(
      * Returns the first visible date.
      */
     @PublicApi
-    val firstVisibleDate: Calendar?
-        get() = viewState.firstVisibleDate?.copy()
+    val firstVisibleDate: Calendar
+        get() = viewState.firstVisibleDate.copy()
 
     /**
      * Returns the last visible date.
      */
     @PublicApi
-    val lastVisibleDate: Calendar?
-        get() = viewState.lastVisibleDate?.copy()
+    val lastVisibleDate: Calendar
+        get() = viewState.lastVisibleDate
 
     /**
      * Shows the current date.

@@ -238,7 +238,7 @@ internal class WeekViewGestureHandler<T : Any>(
             goToNearestOrigin()
             currentScrollDirection = None
         } else if (event.action == ACTION_DOWN) {
-            preFlingFirstVisibleDate = checkNotNull(viewState.firstVisibleDate?.copy())
+            preFlingFirstVisibleDate = viewState.firstVisibleDate.copy()
         }
 
         return handled

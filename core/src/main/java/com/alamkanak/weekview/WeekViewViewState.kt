@@ -133,8 +133,7 @@ internal data class WeekViewViewState<T>(
     var maxDate: Calendar? = null,
     var goToDate: Calendar? = null,
     var goToHour: Int? = null,
-    var firstVisibleDate: Calendar? = null,
-    var lastVisibleDate: Calendar? = null,
+    var firstVisibleDate: Calendar = now().atStartOfDay,
 
     private var _bounds: Rect = Rect(-1, -1, -1, -1),
     private var _timeColumnBounds: Rect = Rect(-1, -1, -1, -1),
@@ -162,6 +161,9 @@ internal data class WeekViewViewState<T>(
 
     val cache: Cache<T> = Cache()
 ) {
+
+    val lastVisibleDate: Calendar
+        get() = firstVisibleDate + Days(_numberOfVisibleDays)
 
     val bounds: Rect
         get() = _bounds
