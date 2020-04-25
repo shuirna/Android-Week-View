@@ -6,11 +6,13 @@ internal data class FetchRange(
     val previous: Period,
     val current: Period,
     val next: Period
-) {
+) : Comparable<FetchRange> {
 
     val periods: List<Period> = listOf(previous, current, next)
 
-    fun isEqual(other: FetchRange) = this == other
+    override fun compareTo(other: FetchRange): Int {
+        return current.compareTo(other.current)
+    }
 
     internal companion object {
         fun create(firstVisibleDay: Calendar): FetchRange {

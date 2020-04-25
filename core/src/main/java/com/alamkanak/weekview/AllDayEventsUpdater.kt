@@ -1,6 +1,5 @@
 package com.alamkanak.weekview
 
-import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
 import android.text.SpannableStringBuilder
@@ -10,8 +9,6 @@ import android.text.TextUtils
 import android.text.TextUtils.TruncateAt.END
 
 internal class AllDayEventsUpdater<T : Any>(
-    private val context: Context,
-    private val cache: WeekViewCache<T>,
     private val chipCache: EventChipCache<T>
 ) : Updater<T> {
 
@@ -29,7 +26,7 @@ internal class AllDayEventsUpdater<T : Any>(
     }
 
     override fun update(viewState: WeekViewViewState<T>) {
-        cache.allDayEventLayouts.clear()
+        viewState.cache.allDayEventLayouts.clear()
 
         val datesWithStartPixels = viewState.dateRangeWithStartPixels
         for ((date, startPixel) in datesWithStartPixels) {
@@ -45,7 +42,7 @@ internal class AllDayEventsUpdater<T : Any>(
             }
         }
 
-        val maximumChipHeight = cache.allDayEventLayouts.keys
+        val maximumChipHeight = viewState.cache.allDayEventLayouts.keys
             .mapNotNull { it.bounds?.height }
             .max() ?: 0
 
@@ -64,7 +61,7 @@ internal class AllDayEventsUpdater<T : Any>(
         if (isValidEventBounds) {
             val textLayout = calculateChipTextLayout(viewState, eventChip)
             if (textLayout != null) {
-                cache.allDayEventLayouts[eventChip] = textLayout
+                viewState.cache.allDayEventLayouts[eventChip] = textLayout
             }
         }
     }
@@ -95,33 +92,16 @@ internal class AllDayEventsUpdater<T : Any>(
         }
 
         spannableStringBuilder.clear()
-        val title = event.titleResource.toSpannableString(context)
-        spannableStringBuilder.append(title)
+        spannableStringBuilder.append(event.title)
 
-        val location = event.locationResource?.toSpannableString(context)
-        if (location != null) {
+        event.location?.let { location ->
             spannableStringBuilder.append(" ")
             spannableStringBuilder.append(location)
         }
 
         val text = spannableStringBuilder.build()
+        val textPaint = event.getTextPaint(viewState)
 
-//        val modifiedTitle = title.emojify()
-//        val text = SpannableStringBuilder(modifiedTitle)
-//        text.setSpan(StyleSpan(Typeface.BOLD))
-
-//        val location = when (val resource = event.locationResource) {
-//            is TextResource.Id -> context.getString(resource.resId)
-//            is TextResource.Value -> resource.text
-//            null -> null
-//        }
-
-//        if (location != null) {
-//            val modifiedLocation = location.emojify()
-//            text.append(' ').append(modifiedLocation)
-//        }
-
-        val textPaint = event.getTextPaint(context, viewState)
         val textLayout = text.toTextLayout(textPaint, availableWidth)
         val lineHeight = textLayout.height / textLayout.lineCount
 
@@ -142,10 +122,10 @@ internal class AllDayEventsUpdater<T : Any>(
      */
     private fun createDummyTextLayout(
         viewState: WeekViewViewState<T>,
-        event: WeekViewEvent<T>
+        event: ResolvedWeekViewEvent<T>
     ): StaticLayout {
         if (dummyTextLayout == null) {
-            val textPaint = event.getTextPaint(context, viewState)
+            val textPaint = event.getTextPaint(viewState)
             dummyTextLayout = "".toTextLayout(textPaint, width = 0)
         }
         return checkNotNull(dummyTextLayout)
@@ -157,7 +137,7 @@ internal class AllDayEventsUpdater<T : Any>(
         availableWidth: Int,
         existingTextLayout: StaticLayout
     ): StaticLayout {
-        val textPaint = event.getTextPaint(context, viewState)
+        val textPaint = event.getTextPaint(viewState)
         val width = checkNotNull(bounds).width - (viewState.eventPaddingHorizontal * 2)
 
         val ellipsized = text.ellipsized(textPaint, availableWidth)

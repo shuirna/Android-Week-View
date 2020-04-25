@@ -45,13 +45,6 @@ fun Canvas.drawText(
     drawText(text, x.toFloat(), y.toFloat(), paint)
 }
 
-fun Canvas.drawLines(
-    points: IntArray,
-    paint: Paint
-) {
-    drawLines(points.map { it.toFloat() }.toFloatArray(), paint)
-}
-
 fun Canvas.drawCircle(
     cx: Int,
     cy: Int,

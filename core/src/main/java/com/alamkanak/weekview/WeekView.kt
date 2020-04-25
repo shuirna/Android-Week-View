@@ -24,12 +24,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var viewState: WeekViewViewState<T> = WeekViewViewState(context, attrs)
-
-    private val cache = WeekViewCache<T>()
     private val eventChipCache = EventChipCache<T>()
 
     private val touchHandler = WeekViewTouchHandler(viewState, eventChipCache)
-
     private val gestureHandler = WeekViewGestureHandler(
         context,
         viewState,
@@ -43,10 +40,17 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private val eventChipsLoader = EventChipsLoader(viewState, eventChipCache)
     private val eventChipsExpander = EventChipsExpander(viewState, eventChipCache)
 
-    private val eventsCacheWrapper = EventsCacheWrapper<T>()
-    private val eventsLoaderWrapper = EventsLoaderWrapper(eventsCacheWrapper)
+    private val resourceResolver: ResourceResolver = RealResourceResolver(context)
 
-    private val eventsDiffer = EventsDiffer(eventsCacheWrapper, eventChipsLoader, viewState)
+    private val eventsCacheWrapper = EventsCacheWrapper<T>()
+    private val eventsLoaderWrapper = EventsLoaderWrapper(eventsCacheWrapper, resourceResolver)
+
+    private val eventsDiffer = EventsDiffer(
+        eventsCacheWrapper,
+        eventChipsLoader,
+        viewState,
+        resourceResolver
+    )
 
     private val eventsLoader: EventsLoader<T>
         get() = eventsLoaderWrapper.get()
@@ -84,7 +88,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     // Be careful when changing the order of the updaters, as the calculation of any updater might
     // depend on results of previous updaters
     private val updaters = listOf(
-        AllDayEventsUpdater(context, cache, eventChipCache),
+        AllDayEventsUpdater(eventChipCache),
         DateLabelsUpdater(),
         SingleEventsUpdater(eventChipCache)
     )
@@ -107,12 +111,12 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private val drawers = listOf(
         DayBackgroundDrawer(),
         BackgroundGridDrawer(),
-        SingleEventsDrawer(context, viewState, eventChipCache),
+        SingleEventsDrawer(viewState, eventChipCache),
         NowLineDrawer(),
         TimeColumnDrawer(),
         HeaderRowDrawer(),
         DateLabelsDrawer(),
-        AllDayEventsDrawer(context, viewState, cache)
+        AllDayEventsDrawer(viewState)
     )
 
     override fun onDraw(canvas: Canvas) {
@@ -182,9 +186,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
             viewState.numberOfVisibleDays = savedState.numberOfVisibleDays
         }
 
-        savedState.firstVisibleDate.let {
-            goToDate(it)
-        }
+        goToDate(savedState.firstVisibleDate, animated = false)
     }
 
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
@@ -207,8 +209,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
         viewState.firstVisibleDate = today() + Days(delta)
 
-        val hasFirstVisibleDayChanged = firstVisibleDate.isNotEqual(oldFirstVisibleDay)
-        if (hasFirstVisibleDayChanged) {
+        if (firstVisibleDate != oldFirstVisibleDay) {
             scrollListener?.onFirstVisibleDateChanged(firstVisibleDate)
             onRangeChangeListener?.onRangeChanged(firstVisibleDate, lastVisibleDate)
         }
@@ -969,7 +970,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         get() = viewState.minDate?.copy()
         set(value) {
             val maxDate = viewState.maxDate
-            if (maxDate != null && value != null && value.isAfter(maxDate)) {
+            if (maxDate != null && value != null && value > maxDate) {
                 throw IllegalArgumentException("Can't set a minDate that's after maxDate")
             }
 
@@ -986,7 +987,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         get() = viewState.maxDate?.copy()
         set(value) {
             val minDate = viewState.minDate
-            if (minDate != null && value != null && value.isBefore(minDate)) {
+            if (minDate != null && value != null && value < minDate) {
                 throw IllegalArgumentException("Can't set a maxDate that's before minDate")
             }
 
@@ -1198,9 +1199,9 @@ class WeekView<T : Any> @JvmOverloads constructor(
         val minDate = minDate ?: date
         val maxDate = maxDate ?: date
 
-        return if (date.isBefore(minDate)) {
+        return if (date < minDate) {
             minDate
-        } else if (date.isAfter(maxDate)) {
+        } else if (date > maxDate) {
             maxDate + Days(1 - numberOfVisibleDays)
         } else if (numberOfVisibleDays >= 7 && showFirstDayOfWeekFirst) {
             val diff = date.computeDifferenceWithFirstDayOfWeek()
@@ -1449,7 +1450,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     ) {
         scrollListener = object : ScrollListener {
             override fun onFirstVisibleDateChanged(date: Calendar) {
-                block(checkNotNull(firstVisibleDate))
+                block(firstVisibleDate)
             }
         }
     }

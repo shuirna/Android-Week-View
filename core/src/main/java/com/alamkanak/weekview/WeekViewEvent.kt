@@ -1,14 +1,11 @@
 package com.alamkanak.weekview
 
-import android.content.Context
 import android.text.SpannableString
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DimenRes
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
 import java.util.Calendar
-import kotlin.math.roundToInt
 
 data class WeekViewEvent<T> internal constructor(
     val id: Long = 0L,
@@ -18,84 +15,19 @@ data class WeekViewEvent<T> internal constructor(
     internal val locationResource: TextResource? = null,
     val isAllDay: Boolean = false,
     val style: Style = Style(),
-    val data: T? = null
-) : WeekViewDisplayable<T>, Comparable<WeekViewEvent<T>> {
-
-    internal val isNotAllDay: Boolean
-        get() = isAllDay.not()
-
-    internal val durationInMinutes: Int =
-        ((endTime.timeInMillis - startTime.timeInMillis).toFloat() / 60_000).roundToInt()
-
-    internal val isMultiDay: Boolean = startTime.isSameDate(endTime).not()
-
-    internal fun isWithin(
-        minHour: Int,
-        maxHour: Int
-    ): Boolean = startTime.hour >= minHour && endTime.hour <= maxHour
-
-    internal fun collidesWith(other: WeekViewEvent<T>): Boolean {
-        if (isAllDay != other.isAllDay) {
-            return false
-        }
-
-        if (startTime.isEqual(other.startTime) && endTime.isEqual(other.endTime)) {
-            // Complete overlap
-            return true
-        }
-
-        // Resolve collisions by shortening the preceding event by 1 ms
-        if (endTime.isEqual(other.startTime)) {
-            endTime -= Millis(1)
-            return false
-        } else if (startTime.isEqual(other.endTime)) {
-            other.endTime -= Millis(1)
-        }
-
-        return !startTime.isAfter(other.endTime) && !endTime.isBefore(other.startTime)
-    }
-
-    internal fun startsOnEarlierDay(
-        originalEvent: WeekViewEvent<T>
-    ): Boolean = startTime.isNotEqual(originalEvent.startTime)
-
-    internal fun endsOnLaterDay(
-        originalEvent: WeekViewEvent<T>
-    ): Boolean = endTime.isNotEqual(originalEvent.endTime)
-
-    override fun compareTo(other: WeekViewEvent<T>): Int {
-        var comparator = startTime.compareTo(other.startTime)
-        if (comparator == 0) {
-            comparator = endTime.compareTo(other.endTime)
-        }
-        return comparator
-    }
+    val data: T
+) : WeekViewDisplayable<T> {
 
     override fun toWeekViewEvent(): WeekViewEvent<T> = this
 
     internal sealed class ColorResource {
         data class Value(@ColorInt val color: Int) : ColorResource()
         data class Id(@ColorRes val resId: Int) : ColorResource()
-
-        @ColorInt
-        fun resolve(
-            context: Context
-        ): Int = when (this) {
-            is Id -> ContextCompat.getColor(context, resId)
-            is Value -> color
-        }
     }
 
     internal sealed class TextResource {
         data class Value(val text: SpannableString) : TextResource()
         data class Id(@StringRes val resId: Int) : TextResource()
-
-        fun toSpannableString(
-            context: Context
-        ): SpannableString = when (this) {
-            is Id -> SpannableString(context.getString(resId))
-            is Value -> text
-        }.emojify()
     }
 
     internal sealed class DimenResource {
@@ -111,58 +43,65 @@ data class WeekViewEvent<T> internal constructor(
         internal var borderWidthResource: DimenResource? = null
         internal var borderColorResource: ColorResource? = null
 
-        internal val hasBorder: Boolean
-            get() = borderWidthResource != null
-
         class Builder {
 
             private val style = Style()
 
+            @PublicApi
             fun setBackgroundColor(@ColorInt color: Int): Builder {
                 style.backgroundColorResource = ColorResource.Value(color)
                 return this
             }
 
+            @PublicApi
             fun setBackgroundColorResource(@ColorRes resId: Int): Builder {
                 style.backgroundColorResource = ColorResource.Id(resId)
                 return this
             }
 
+            @PublicApi
             fun setTextColor(@ColorInt color: Int): Builder {
                 style.textColorResource = ColorResource.Value(color)
                 return this
             }
 
+            @PublicApi
             fun setTextColorResource(@ColorRes resId: Int): Builder {
                 style.textColorResource = ColorResource.Id(resId)
                 return this
             }
 
+            @PublicApi
             fun setTextStrikeThrough(strikeThrough: Boolean): Builder {
                 style.isTextStrikeThrough = strikeThrough
                 return this
             }
 
+            @PublicApi
             fun setBorderWidth(width: Int): Builder {
                 style.borderWidthResource = DimenResource.Value(width)
                 return this
             }
 
+            @PublicApi
             fun setBorderWidthResource(@DimenRes resId: Int): Builder {
                 style.borderWidthResource = DimenResource.Id(resId)
                 return this
             }
 
+            @PublicApi
             fun setBorderColor(@ColorInt color: Int): Builder {
                 style.borderColorResource = ColorResource.Value(color)
                 return this
             }
 
+            @PublicApi
             fun setBorderColorResource(@ColorRes resId: Int): Builder {
                 style.borderColorResource = ColorResource.Id(resId)
                 return this
             }
 
+            @PublicApi
             fun build(): Style = style
         }
     }
@@ -179,11 +118,13 @@ data class WeekViewEvent<T> internal constructor(
         private var style: Style? = null
         private var isAllDay: Boolean = false
 
+        @PublicApi
         fun setId(id: Long): Builder<T> {
             this.id = id
             return this
         }
 
+        @PublicApi
         fun setTitle(title: CharSequence): Builder<T> {
             val spannableString = when (title) {
                 is SpannableString -> title
@@ -193,21 +134,25 @@ data class WeekViewEvent<T> internal constructor(
             return this
         }
 
+        @PublicApi
         fun setTitle(resId: Int): Builder<T> {
             this.title = TextResource.Id(resId)
             return this
         }
 
+        @PublicApi
         fun setStartTime(startTime: Calendar): Builder<T> {
             this.startTime = startTime
             return this
         }
 
+        @PublicApi
         fun setEndTime(endTime: Calendar): Builder<T> {
             this.endTime = endTime
             return this
         }
 
+        @PublicApi
         fun setLocation(location: CharSequence): Builder<T> {
             val spannableString = when (location) {
                 is SpannableString -> location
@@ -217,21 +162,25 @@ data class WeekViewEvent<T> internal constructor(
             return this
         }
 
+        @PublicApi
         fun setLocation(resId: Int): Builder<T> {
             this.location = TextResource.Id(resId)
             return this
         }
 
+        @PublicApi
         fun setStyle(style: Style): Builder<T> {
             this.style = style
             return this
         }
 
+        @PublicApi
         fun setAllDay(isAllDay: Boolean): Builder<T> {
             this.isAllDay = isAllDay
             return this
         }
 
+        @PublicApi
         fun build(): WeekViewEvent<T> {
             val id = checkNotNull(id) { "id == null" }
             val title = checkNotNull(title) { "title == null" }
@@ -242,4 +191,17 @@ data class WeekViewEvent<T> internal constructor(
             return WeekViewEvent(id, title, startTime, endTime, location, isAllDay, style, data)
         }
     }
+}
+
+internal fun <T> WeekViewEvent<T>.resolve(resolver: ResourceResolver): ResolvedWeekViewEvent<T> {
+    return ResolvedWeekViewEvent(
+        id = id,
+        title = checkNotNull(resolver.resolve(titleResource)),
+        startTime = startTime,
+        endTime = endTime,
+        location = resolver.resolve(locationResource),
+        isAllDay = isAllDay,
+        style = resolver.resolve(style),
+        data = data
+    )
 }

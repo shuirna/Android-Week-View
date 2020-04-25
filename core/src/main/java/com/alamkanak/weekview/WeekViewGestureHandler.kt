@@ -39,7 +39,7 @@ internal class WeekViewGestureHandler<T : Any>(
     private val gestureDetector = GestureDetector(context, this)
     private val scaleDetector = ScaleGestureDetector(context, viewState, smoothScroller, onInvalidation)
 
-    private val scaledTouchSlop = context.scaledTouchSlop
+    private val scaledTouchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     var scrollListener: ScrollListener? = null
 
@@ -249,7 +249,4 @@ internal class WeekViewGestureHandler<T : Any>(
         currentFlingDirection = None
         currentScrollDirection = currentFlingDirection
     }
-
-    private val Context.scaledTouchSlop: Int
-        get() = ViewConfiguration.get(this).scaledTouchSlop
 }

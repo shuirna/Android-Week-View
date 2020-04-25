@@ -1,12 +1,10 @@
 package com.alamkanak.weekview
 
-import android.content.Context
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 
 internal class TextFitter<T>(
-    private val context: Context,
     private val viewState: WeekViewViewState<T>
 ) {
 
@@ -20,7 +18,7 @@ internal class TextFitter<T>(
         chipWidth: Int
     ): StaticLayout {
         val text = combineTitleAndLocation(title, location, isMultiLine = true)
-        val textPaint = eventChip.event.getTextPaint(context, viewState)
+        val textPaint = eventChip.event.getTextPaint(viewState)
         val textLayout = text.toTextLayout(textPaint, width = chipWidth)
 
         val fitsIntoChip = chipHeight >= textLayout.height
@@ -72,7 +70,7 @@ internal class TextFitter<T>(
 
         // The text fits into the chip, so we just need to ellipsize it
         var newTextLayout = textLayout
-        val textPaint = event.getTextPaint(context, viewState)
+        val textPaint = event.getTextPaint(viewState)
 
         var availableLineCount = availableHeight / newTextLayout.lineHeight
         val fullHorizontalPadding = viewState.eventPaddingHorizontal * 2f
@@ -97,7 +95,7 @@ internal class TextFitter<T>(
         val event = eventChip.event
         val rect = checkNotNull(eventChip.bounds)
 
-        val textPaint = event.getTextPaint(context, viewState)
+        val textPaint = event.getTextPaint(viewState)
         val fullHorizontalPadding = viewState.eventPaddingHorizontal * 2f
         val width = (rect.right - rect.left - fullHorizontalPadding).toInt()
 

@@ -1,16 +1,14 @@
 package com.alamkanak.weekview
 
-import android.content.Context
 import android.graphics.Canvas
 import java.util.Calendar
 
 internal class SingleEventsDrawer<T>(
-    context: Context,
     viewState: WeekViewViewState<T>,
     private val chipCache: EventChipCache<T>
 ) : Drawer<T> {
 
-    private val eventChipDrawer = EventChipDrawer(context, viewState)
+    private val eventChipDrawer = EventChipDrawer(viewState)
 
     override fun draw(viewState: WeekViewViewState<T>, canvas: Canvas) {
         for (date in viewState.dateRange) {
@@ -30,19 +28,17 @@ internal class SingleEventsDrawer<T>(
 }
 
 internal class AllDayEventsDrawer<T>(
-    context: Context,
-    viewState: WeekViewViewState<T>,
-    private val cache: WeekViewCache<T>
+    viewState: WeekViewViewState<T>
 ) : Drawer<T> {
 
-    private val eventChipDrawer = EventChipDrawer(context, viewState)
+    private val eventChipDrawer = EventChipDrawer(viewState)
 
     override fun draw(
         viewState: WeekViewViewState<T>,
         canvas: Canvas
     ) {
         canvas.drawInRect(viewState.headerBounds) {
-            val eventChips = cache.allDayEventLayouts
+            val eventChips = viewState.cache.allDayEventLayouts
             for ((eventChip, textLayout) in eventChips) {
                 eventChipDrawer.draw(eventChip, canvas, textLayout)
             }

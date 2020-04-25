@@ -10,19 +10,19 @@ import android.graphics.RectF
  * There may be more than one [EventChip] for any even (think multi-day events). In that case,
  * multiple [EventChip]s will be used for a single [WeekViewEvent].
  *
- * The original [WeekViewEvent] is accessible via [originalEvent]. The [WeekViewEvent] that
- * corresponds to the drawn rectangle is accessible via [event].
+ * The original [WeekViewEvent] is accessible via [originalEvent]. The [ResolvedWeekViewEvent]
+ * that corresponds to the drawn rectangle is accessible via [event].
  */
 internal data class EventChip<T>(
     /**
      * The [WeekViewEvent] corresponding to the drawn rectangle. It might differ from
      * [originalEvent], which may be a multi-day event.
      */
-    val event: WeekViewEvent<T>,
+    val event: ResolvedWeekViewEvent<T>,
     /**
      * The original [WeekViewEvent], which may be a multi-day event.
      */
-    val originalEvent: WeekViewEvent<T>
+    val originalEvent: ResolvedWeekViewEvent<T>
 ) {
 
     /**

@@ -37,10 +37,6 @@ internal val Calendar.month: Int
 internal val Calendar.year: Int
     get() = get(Calendar.YEAR)
 
-internal fun Calendar.isEqual(other: Calendar) = timeInMillis == other.timeInMillis
-
-internal fun Calendar.isNotEqual(other: Calendar) = isEqual(other).not()
-
 internal operator fun Calendar.plus(days: Days): Calendar {
     return copy().apply {
         add(Calendar.DATE, days.days)
@@ -101,10 +97,6 @@ internal operator fun Calendar.minusAssign(millis: Millis) {
     add(Calendar.MILLISECOND, millis.millis * (-1))
 }
 
-internal fun Calendar.isBefore(other: Calendar) = timeInMillis < other.timeInMillis
-
-internal fun Calendar.isAfter(other: Calendar) = timeInMillis > other.timeInMillis
-
 internal fun Calendar.isBetween(
     lhs: Calendar,
     rhs: Calendar,
@@ -118,10 +110,10 @@ internal fun Calendar.isBetween(
 }
 
 internal val Calendar.isBeforeToday: Boolean
-    get() = isBefore(today())
+    get() = this < today()
 
 internal val Calendar.isToday: Boolean
-    get() = isSameDate(today())
+    get() = this.toEpochDays() == today().toEpochDays()
 
 internal fun Calendar.toEpochDays(): Int = (atStartOfDay.timeInMillis / DAY_IN_MILLIS).toInt()
 
@@ -225,9 +217,9 @@ internal fun Calendar.copy(): Calendar = clone() as Calendar
  * @return Whether or not this date is at the start of the day after startDate
  */
 internal fun Calendar.isAtStartOfNextDay(startDate: Calendar): Boolean {
-    return if (isEqual(atStartOfDay)) {
+    return if (this == atStartOfDay) {
         val endOfPreviousDay = this - Millis(1)
-        endOfPreviousDay.isSameDate(startDate)
+        endOfPreviousDay.toEpochDays() == startDate.toEpochDays()
     } else {
         false
     }

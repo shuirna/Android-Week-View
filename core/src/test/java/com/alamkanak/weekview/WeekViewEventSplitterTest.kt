@@ -3,6 +3,7 @@ package com.alamkanak.weekview
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.alamkanak.weekview.model.Event
+import com.alamkanak.weekview.util.FakeResourceResolver
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +20,8 @@ class WeekViewEventSplitterTest {
     private val viewState = mock(WeekViewViewState::class.java) as WeekViewViewState<Event>
     private val underTest = WeekViewEventSplitter(viewState)
 
+    private val resourceResolver: ResourceResolver = FakeResourceResolver()
+
     init {
         MockitoAnnotations.initMocks(this)
         whenever(viewState.minHour).thenReturn(0)
@@ -29,7 +32,7 @@ class WeekViewEventSplitterTest {
     fun `single-day event is not split`() {
         val startTime = today().withHour(11)
         val endTime = startTime + Hours(2)
-        val event = Event(startTime, endTime).toWeekViewEvent()
+        val event = Event(startTime, endTime).toWeekViewEvent().resolve(resourceResolver)
 
         val results = underTest.split(event)
         val expected = listOf(event)
@@ -42,7 +45,7 @@ class WeekViewEventSplitterTest {
         val startTime = today().withHour(11)
         val endTime = (startTime + Days(1)).withHour(2)
 
-        val event = Event(startTime, endTime).toWeekViewEvent()
+        val event = Event(startTime, endTime).toWeekViewEvent().resolve(resourceResolver)
         val results = underTest.split(event)
 
         val expected = listOf(
@@ -61,7 +64,7 @@ class WeekViewEventSplitterTest {
         val startTime = today().withHour(11)
         val endTime = (startTime + Days(2)).withHour(2)
 
-        val event = Event(startTime, endTime).toWeekViewEvent()
+        val event = Event(startTime, endTime).toWeekViewEvent().resolve(resourceResolver)
         val results = underTest.split(event)
 
         val intermediateDate = startTime + Days(1)

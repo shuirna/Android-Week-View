@@ -17,17 +17,17 @@ internal class WeekViewTouchHandler<T : Any>(
     var onEmptyViewClickListener: OnEmptyViewClickListener? = null
     var onEmptyViewLongClickListener: OnEmptyViewLongClickListener? = null
 
-    fun handleLongClick(x: Float, y: Float) {
-        val handled = onEventLongClickListener?.handleLongClick(x, y) ?: false
-        if (!handled) {
-            onEmptyViewLongClickListener?.handleLongClick(x, y)
-        }
-    }
-
     fun handleClick(x: Float, y: Float) {
         val handled = onEventClickListener?.handleClick(x, y) ?: false
         if (!handled) {
             onEmptyViewClickListener?.handleClick(x, y)
+        }
+    }
+
+    fun handleLongClick(x: Float, y: Float) {
+        val handled = onEventLongClickListener?.handleLongClick(x, y) ?: false
+        if (!handled) {
+            onEmptyViewLongClickListener?.handleLongClick(x, y)
         }
     }
 
@@ -98,12 +98,10 @@ internal class WeekViewTouchHandler<T : Any>(
             return false
         }
 
-        val data = checkNotNull(eventChip.originalEvent.data) {
-            "Did you pass the original object into the constructor of WeekViewEvent?"
-        }
-
+        val data = eventChip.originalEvent.data
         val rect = checkNotNull(eventChip.bounds)
         onEventClick(data, RectF(rect))
+
         return true
     }
 
@@ -126,9 +124,7 @@ internal class WeekViewTouchHandler<T : Any>(
             return false
         }
 
-        val data = eventChip.originalEvent.data ?: throw NullPointerException(
-            "Did you pass the original object into the constructor of WeekViewEvent?")
-
+        val data = eventChip.originalEvent.data
         val rect = checkNotNull(eventChip.bounds)
         onEventLongClick(data, RectF(rect))
 

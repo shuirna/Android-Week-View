@@ -6,13 +6,6 @@ import java.util.Calendar
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class MainExecutor : Executor {
-    private val handler = Handler(Looper.getMainLooper())
-    override fun execute(runnable: Runnable) {
-        handler.post(runnable)
-    }
-}
-
 /**
  * A helper class that caches the submitted [WeekViewEvent]s and creates [EventChip]s on a
  * background thread.
@@ -20,11 +13,11 @@ class MainExecutor : Executor {
 internal class EventsDiffer<T>(
     private val eventsCacheWrapper: EventsCacheWrapper<T>,
     private val eventChipsLoader: EventChipsLoader<T>,
-    private val viewState: WeekViewViewState<T>
+    private val viewState: WeekViewViewState<T>,
+    private val resourceResolver: ResourceResolver,
+    private val backgroundExecutor: Executor = Executors.newSingleThreadExecutor(),
+    private val mainThreadExecutor: Executor = MainExecutor()
 ) {
-
-    private val backgroundExecutor = Executors.newSingleThreadExecutor()
-    private val mainThreadExecutor = MainExecutor()
 
     /**
      * Updates the [EventsCache] with the provided [WeekViewDisplayable]s and creates [EventChip]s.
@@ -56,7 +49,7 @@ internal class EventsDiffer<T>(
         items: List<WeekViewDisplayable<T>>,
         dateRange: List<Calendar>
     ): Boolean {
-        val events = items.map { it.toWeekViewEvent() }
+        val events = items.map { it.toWeekViewEvent().resolve(resourceResolver) }
         val startDate = events.map { it.startTime.atStartOfDay }.min()
         val endDate = events.map { it.endTime.atEndOfDay }.max()
 
@@ -73,14 +66,19 @@ internal class EventsDiffer<T>(
 
         when (eventsCache) {
             is SimpleEventsCache -> eventsCache.update(events)
-            is PagedEventsCache -> eventsCache.update(mapEventsToPeriod(events))
+            is PagedEventsCache -> eventsCache.update(events.mapEventsToPeriod())
         }
 
         eventChipsLoader.createAndCacheEventChips(events)
         return dateRange.any { it.isBetween(startDate, endDate, inclusive = true) }
     }
 
-    private fun mapEventsToPeriod(
-        events: List<WeekViewEvent<T>>
-    ) = events.groupBy { Period.fromDate(it.startTime) }
+    private fun List<ResolvedWeekViewEvent<T>>.mapEventsToPeriod() = groupBy { Period.fromDate(it.startTime) }
+}
+
+private class MainExecutor : Executor {
+    private val handler = Handler(Looper.getMainLooper())
+    override fun execute(runnable: Runnable) {
+        handler.post(runnable)
+    }
 }

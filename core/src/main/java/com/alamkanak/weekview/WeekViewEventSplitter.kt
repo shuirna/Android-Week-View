@@ -4,7 +4,7 @@ internal class WeekViewEventSplitter<T>(
     private val viewState: WeekViewViewState<T>
 ) {
 
-    fun split(event: WeekViewEvent<T>): List<WeekViewEvent<T>> {
+    fun split(event: ResolvedWeekViewEvent<T>): List<ResolvedWeekViewEvent<T>> {
         if (event.startTime >= event.endTime) {
             return emptyList()
         }
@@ -22,14 +22,14 @@ internal class WeekViewEventSplitter<T>(
     }
 
     private fun shortenTooLongAllDayEvent(
-        event: WeekViewEvent<T>
-    ): WeekViewEvent<T> {
+        event: ResolvedWeekViewEvent<T>
+    ): ResolvedWeekViewEvent<T> {
         val newEndTime = event.endTime.withTimeAtEndOfPeriod(viewState.maxHour)
         return event.copy(endTime = newEndTime)
     }
 
-    private fun splitEventByDates(event: WeekViewEvent<T>): List<WeekViewEvent<T>> {
-        val results = mutableListOf<WeekViewEvent<T>>()
+    private fun splitEventByDates(event: ResolvedWeekViewEvent<T>): List<ResolvedWeekViewEvent<T>> {
+        val results = mutableListOf<ResolvedWeekViewEvent<T>>()
 
         val firstEventEnd = event.startTime.withTimeAtEndOfPeriod(viewState.maxHour)
         val firstEvent = event.copy(endTime = firstEventEnd)
@@ -52,6 +52,6 @@ internal class WeekViewEventSplitter<T>(
             }
         }
 
-        return results.sorted()
+        return results.sortedWith(compareBy({ it.startTime }, { it.endTime }))
     }
 }

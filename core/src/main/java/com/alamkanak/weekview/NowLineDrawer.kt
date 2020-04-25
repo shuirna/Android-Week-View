@@ -5,7 +5,7 @@ import com.alamkanak.weekview.Constants.MINUTES_PER_HOUR
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-internal class NowLineDrawer<T>() : Drawer<T> {
+internal class NowLineDrawer<T> : Drawer<T> {
 
     override fun draw(
         viewState: WeekViewViewState<T>,
