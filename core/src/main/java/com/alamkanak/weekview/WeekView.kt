@@ -23,7 +23,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private var viewState: WeekViewViewState<T> = WeekViewViewState(context, attrs)
+    private val viewState: WeekViewViewState<T> = WeekViewViewState(context, attrs)
     private val eventChipCache = EventChipCache<T>()
 
     private val touchHandler = WeekViewTouchHandler(viewState, eventChipCache)
@@ -37,8 +37,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
 
     private var accessibilityTouchHelper: WeekViewAccessibilityTouchHelper<T>? = null
 
-    private val eventChipsLoader = EventChipsLoader(viewState, eventChipCache)
-    private val eventChipsExpander = EventChipsExpander(viewState, eventChipCache)
+    private val eventChipsLoader = EventChipsLoader(viewState)
 
     private val resourceResolver: ResourceResolver = RealResourceResolver(context)
 
@@ -48,6 +47,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
     private val eventsDiffer = EventsDiffer(
         eventsCacheWrapper,
         eventChipsLoader,
+        eventChipCache,
         viewState,
         resourceResolver
     )
@@ -150,8 +150,7 @@ class WeekView<T : Any> @JvmOverloads constructor(
         eventChipCache.clear()
 
         if (events.isNotEmpty()) {
-            eventChipsLoader.createAndCacheEventChips(events)
-            eventChipsExpander.calculateEventChipPositions()
+            eventChipCache += eventChipsLoader.createEventChips(events)
         }
     }
 

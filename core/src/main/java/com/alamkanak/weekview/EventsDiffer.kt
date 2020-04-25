@@ -13,6 +13,7 @@ import java.util.concurrent.Executors
 internal class EventsDiffer<T>(
     private val eventsCacheWrapper: EventsCacheWrapper<T>,
     private val eventChipsLoader: EventChipsLoader<T>,
+    private val eventChipCache: EventChipCache<T>,
     private val viewState: WeekViewViewState<T>,
     private val resourceResolver: ResourceResolver,
     private val backgroundExecutor: Executor = Executors.newSingleThreadExecutor(),
@@ -69,7 +70,7 @@ internal class EventsDiffer<T>(
             is PagedEventsCache -> eventsCache.update(events.mapEventsToPeriod())
         }
 
-        eventChipsLoader.createAndCacheEventChips(events)
+        eventChipCache += eventChipsLoader.createEventChips(events)
         return dateRange.any { it.isBetween(startDate, endDate, inclusive = true) }
     }
 

@@ -1,7 +1,6 @@
 package com.alamkanak.weekview
 
 import android.graphics.Rect
-import android.graphics.RectF
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -12,7 +11,7 @@ internal class AllDayEventsUpdater<T : Any>(
     private val chipCache: EventChipCache<T>
 ) : Updater<T> {
 
-    private val rectCalculator = EventChipRectCalculator<T>()
+    private val boundsCalculator = EventChipBoundsCalculator<T>()
     private val spannableStringBuilder = SpannableStringBuilder()
 
     private var previousHorizontalOrigin: Int? = null
@@ -54,7 +53,7 @@ internal class AllDayEventsUpdater<T : Any>(
         eventChip: EventChip<T>,
         startPixel: Int
     ) {
-        val chipRect = rectCalculator.calculateAllDayEvent(viewState, eventChip, startPixel)
+        val chipRect = boundsCalculator.calculateAllDayEvent(viewState, eventChip, startPixel)
         val isValidEventBounds = chipRect.isValidAllDayEventBounds(viewState)
         eventChip.bounds = if (isValidEventBounds) chipRect else null
 
@@ -137,18 +136,19 @@ internal class AllDayEventsUpdater<T : Any>(
         availableWidth: Int,
         existingTextLayout: StaticLayout
     ): StaticLayout {
-        val textPaint = event.getTextPaint(viewState)
         val width = checkNotNull(bounds).width - (viewState.eventPaddingHorizontal * 2)
-
-        val ellipsized = text.ellipsized(textPaint, availableWidth)
         val isTooSmallForText = width < 0
+
         if (isTooSmallForText) {
             // This day contains too many all-day events. We only draw the event chips,
             // but don't attempt to draw the event titles.
             return existingTextLayout
         }
 
-        return ellipsized.toTextLayout(textPaint, width)
+        val textPaint = event.getTextPaint(viewState)
+        return text
+            .ellipsized(textPaint, availableWidth)
+            .toTextLayout(textPaint, width)
     }
 
     private fun Rect.isValidAllDayEventBounds(
@@ -160,14 +160,6 @@ internal class AllDayEventsUpdater<T : Any>(
             right > viewState.timeColumnBounds.right &&
             bottom > 0
     }
-
-    private operator fun RectF.component1() = left
-
-    private operator fun RectF.component2() = top
-
-    private operator fun RectF.component3() = right
-
-    private operator fun RectF.component4() = bottom
 
     private fun CharSequence.ellipsized(
         textPaint: TextPaint,

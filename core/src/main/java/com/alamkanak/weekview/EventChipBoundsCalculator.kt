@@ -3,7 +3,7 @@ package com.alamkanak.weekview
 import android.graphics.Rect
 import kotlin.math.roundToInt
 
-internal class EventChipRectCalculator<T> {
+internal class EventChipBoundsCalculator<T> {
 
     fun calculateSingleEvent(
         viewState: WeekViewViewState<T>,

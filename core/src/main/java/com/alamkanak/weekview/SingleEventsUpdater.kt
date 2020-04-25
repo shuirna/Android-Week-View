@@ -7,7 +7,7 @@ internal class SingleEventsUpdater<T : Any>(
     private val chipCache: EventChipCache<T>
 ) : Updater<T> {
 
-    private val rectCalculator = EventChipRectCalculator<T>()
+    private val boundsCalculator = EventChipBoundsCalculator<T>()
 
     override fun isRequired(viewState: WeekViewViewState<T>) = true
 
@@ -40,7 +40,7 @@ internal class SingleEventsUpdater<T : Any>(
         viewState: WeekViewViewState<T>,
         startPixel: Int
     ) {
-        val candidate = rectCalculator.calculateSingleEvent(viewState, this, startPixel)
+        val candidate = boundsCalculator.calculateSingleEvent(viewState, this, startPixel)
         bounds = candidate.takeIf { it.isValidSingleEventRect(viewState) }
     }
 
